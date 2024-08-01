@@ -4,10 +4,14 @@ import { useSelector, useDispatch } from 'react-redux';
 // material-ui
 import { Menu, Box, Typography, IconButton } from '@mui/material';
 import SortIcon from '@mui/icons-material/Sort';
-import { setSortOption } from 'store/reducers/catalog';
+import { setGirls } from 'store/reducers/girls';
+import { setSortOption } from 'store/reducers/action';
 
 const SortMenu = ({ anchorEl, open, handleClose }) => {
   const { sort } = useSelector((state) => state.catalog);
+  const { sortOption } = useSelector((state) => state.action);
+  console.log(sortOption);
+  const { girls } = useSelector((state) => state.girls);
   const dispatch = useDispatch();
   return (
     <Menu
@@ -35,26 +39,48 @@ const SortMenu = ({ anchorEl, open, handleClose }) => {
           <Typography variant="body1" sx={{ width: 'fit-content' }}>
             {item.name}
           </Typography>
-          <Box>
+          <Box sx={{ display: 'flex', gap: 1 }}>
             <IconButton
               onClick={() => {
-                dispatch(setSortOption({ id: item.id, option: 'asc' }));
+                dispatch(setSortOption({ id: item.id, option: 'desc' }));
+
+                // sort
+                const sorted = [...girls].sort((a, b) => {
+                  if (a[item.id] > b[item.id]) {
+                    return -1;
+                  }
+                  if (a[item.id] < b[item.id]) {
+                    return 1;
+                  }
+                  return 0;
+                });
+                dispatch(setGirls(sorted));
               }}
               sx={{
-                border: item.option === 'asc' && '1px solid',
-                borderColor: item.option === 'asc' ? 'primary.main' : '',
+                border: item.id === sortOption.id && sortOption.option === 'desc' && '1px solid',
               }}
             >
               <SortIcon />
             </IconButton>
             <IconButton
               onClick={() => {
-                dispatch(setSortOption({ id: item.id, option: 'desc' }));
+                dispatch(setSortOption({ id: item.id, option: 'asc' }));
+
+                // sort
+                const sorted = [...girls].sort((a, b) => {
+                  if (a[item.id] > b[item.id]) {
+                    return 1;
+                  }
+                  if (a[item.id] < b[item.id]) {
+                    return -1;
+                  }
+                  return 0;
+                });
+                dispatch(setGirls(sorted));
               }}
               sx={{
                 transform: 'rotateX(180deg)',
-                border: item.option === 'desc' && '1px solid',
-                borderColor: item.option === 'desc' ? 'primary.main' : '',
+                border: item.id === sortOption.id && sortOption.option === 'asc' && '1px solid',
               }}
             >
               <SortIcon />

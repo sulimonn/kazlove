@@ -34,7 +34,14 @@ const Palette = (mode) => {
   });
 
   paletteColor.primary.main = '#ff66c4';
-  paletteColor.secondary.main = '#ff66c4';
+  paletteColor.primary.light = '#ff66c4';
+  paletteColor.primary.lighter = '#ff66c420';
+  paletteColor.primary.dark = '#8a005d';
+  paletteColor.primary.contrastText = '#fff';
+  paletteColor.secondary.main = '#6e5ae2';
+  paletteColor.secondary.light = '#ad90ff';
+  paletteColor.secondary.dark = '#6e5ae2';
+
   return createTheme({
     palette: {
       mode: 'dark',

@@ -17,6 +17,8 @@ import FilterMenu from './FilterMenu';
 
 const Home = () => {
   const { girls } = useSelector((state) => state.girls);
+  const [filtered, setFiltered] = React.useState(girls);
+  const { filterOptions } = useSelector((state) => state.action);
   const [sortAnchorEl, setSortAnchorEl] = React.useState(null);
   const [filterAnchorEl, setfilterAnchorEl] = React.useState(null);
   const sortOpen = Boolean(sortAnchorEl);
@@ -27,6 +29,10 @@ const Home = () => {
   const handleClose = () => {
     setSortAnchorEl(null);
   };
+
+  React.useEffect(() => {
+    setFiltered(girls);
+  }, [filterOptions, girls]);
   return (
     <>
       <Container maxWidth="xl">
@@ -57,7 +63,7 @@ const Home = () => {
           </Button>
         </Stack>
         <Grid container spacing={3} sx={{ mt: 2 }}>
-          {girls.map((girl) => (
+          {filtered.map((girl) => (
             <Grid item xs={12} sm={6} md={4} lg={3} key={girl.id}>
               <Card girl={girl} />
             </Grid>

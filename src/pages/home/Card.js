@@ -93,9 +93,9 @@ const Card = ({ girl }) => {
                 {girl.chest} размер груди, {girl.weight}, {girl.height}
               </Typography>
               <Typography variant="body1" color="text.secondary" whiteSpace={'pre-line'} mb={2}>
-                {girl.service.join(', ').length > 80
-                  ? girl.service.join(', ').substring(0, 80) + '...'
-                  : girl.service.join(', ')}
+                {girl.services.join(', ').length > 80
+                  ? girl.services.join(', ').substring(0, 80) + '...'
+                  : girl.services.join(', ')}
               </Typography>
             </Box>
           </Link>

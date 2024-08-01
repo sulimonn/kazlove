@@ -22,10 +22,11 @@ const Header = ({ open, handleDrawerToggle }) => {
   // app-bar params
   const appBar = {
     position: 'relative',
-    color: 'inherit',
+    color: 'primary',
     elevation: 0,
     height: 'min-content',
     sx: {
+      backgroundColor: 'background.default',
       borderBottom: `1px solid ${theme.palette.divider}`,
       // boxShadow: theme.customShadows.z1
     },
@@ -33,9 +34,7 @@ const Header = ({ open, handleDrawerToggle }) => {
 
   return (
     <>
-      <AppBar position="static" color="default" {...appBar}>
-        {mainHeader}
-      </AppBar>
+      <AppBar {...appBar}>{mainHeader}</AppBar>
     </>
   );
 };

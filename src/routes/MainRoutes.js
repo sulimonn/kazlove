@@ -6,6 +6,7 @@ import MainLayout from 'layout/MainLayout';
 
 // render - home
 const Home = Loadable(lazy(() => import('pages/home')));
+const Profile = Loadable(lazy(() => import('pages/profile')));
 
 // ==============================|| MAIN ROUTING ||============================== //
 
@@ -19,7 +20,7 @@ const MainRoutes = {
     },
     {
       path: '/profile/:id',
-      element: <Home />,
+      element: <Profile />,
     },
   ],
 };

@@ -3,7 +3,7 @@ import { createSlice } from '@reduxjs/toolkit';
 const initialState = {
   drawerOpen: false,
   drawerType: '',
-  sortOption: '',
+  sortOption: {},
   filterOptions: [],
   city: 'Москва',
 };
@@ -26,14 +26,14 @@ const actionSlice = createSlice({
       state.sortOption = action.payload;
     },
     setFilterOptions: (state, action) => {
-      const { id, checked } = action.payload;
+      const option = action.payload;
 
-      if (state.filterOptions.find((item) => item.id === id)) {
+      if (state.filterOptions.find((item) => item.id === option.id)) {
         state.filterOptions = state.filterOptions.map((item) =>
-          item.id === id ? { ...item, checked } : item
+          item.id === option.id ? { ...item, checked: option.checked } : item
         );
       } else {
-        state.filterOptions = [...state.filterOptions, { id, checked }];
+        state.filterOptions = [...state.filterOptions, { ...option }];
       }
     },
     setCity: (state, action) => {

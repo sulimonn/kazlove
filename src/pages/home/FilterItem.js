@@ -4,7 +4,7 @@ import { useDispatch, useSelector } from 'react-redux';
 // material-ui
 import { Button } from '@mui/material';
 import { setFilterOptions } from 'store/reducers/action';
-const FilterItem = ({ option }) => {
+const FilterItem = ({ option, filter }) => {
   const ref = React.useRef();
   const { filterOptions } = useSelector((state) => state.action);
   const dispatch = useDispatch();
@@ -26,8 +26,14 @@ const FilterItem = ({ option }) => {
         name={option.id}
         value={option.id}
         onChange={(e) => {
-          console.log(e.target.checked, option.id);
-          dispatch(setFilterOptions({ id: option.id, checked: e.target.checked }));
+          dispatch(
+            setFilterOptions({
+              id: option.id,
+              checked: e.target.checked,
+              option: option.name,
+              filter,
+            })
+          );
         }}
       />
       {option.name}

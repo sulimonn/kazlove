@@ -36,7 +36,7 @@ const FilterMenu = ({ anchorEl, open, handleClose }) => {
           </Typography>
           <Box display="flex" flexWrap="wrap" gap={1}>
             {item.options.map((option) => (
-              <FilterItem key={option.id} option={option} />
+              <FilterItem key={option.id} option={option} filter={item.id} />
             ))}
           </Box>
         </Box>
