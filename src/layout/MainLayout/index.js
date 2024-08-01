@@ -16,7 +16,7 @@ import { openDrawer } from 'store/reducers/menu';
 
 const MainLayout = () => {
   const theme = useTheme();
-  const matchDownLG = useMediaQuery(theme.breakpoints.down('lg'));
+  const matchDownLG = useMediaQuery(theme.breakpoints.down('sm'));
   const dispatch = useDispatch();
 
   const { drawerOpen } = useSelector((state) => state.menu);
@@ -43,7 +43,7 @@ const MainLayout = () => {
 
   return (
     <Box sx={{ display: 'flex', width: '100%', flexWrap: 'wrap' }}>
-      <Drawer open={open} handleDrawerToggle={handleDrawerToggle} />
+      {matchDownLG && <Drawer open={open} handleDrawerToggle={handleDrawerToggle} />}
       <Header open={open} handleDrawerToggle={handleDrawerToggle} />
       <Box component="main" sx={{ width: '100%', flexGrow: 1, p: { xs: 2, sm: 3 } }}>
         <Outlet />
