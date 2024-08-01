@@ -2,10 +2,9 @@ import PropTypes from 'prop-types';
 
 // material-ui
 import { useTheme } from '@mui/material/styles';
-import { AppBar, Toolbar, useMediaQuery } from '@mui/material';
+import { AppBar, Toolbar } from '@mui/material';
 
 // project import
-import AppBarStyled from './AppBarStyled';
 import HeaderContent from './HeaderContent';
 
 // ==============================|| MAIN LAYOUT - HEADER ||============================== //
