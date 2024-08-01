@@ -12,12 +12,15 @@ import {
   Modal,
   Select,
   MenuItem,
+  IconButton,
 } from '@mui/material';
 import LocationOnIcon from '@mui/icons-material/LocationOn';
+import MenuIcon from '@mui/icons-material/Menu';
 
 // project import
 import LogoSection from 'components/Logo';
 import { setCity } from 'store/reducers/action';
+import { openDrawer, openModal } from 'store/reducers/menu';
 
 // ==============================|| HEADER - CONTENT ||============================== //
 const style = {
@@ -25,7 +28,8 @@ const style = {
   top: '50%',
   left: '50%',
   transform: 'translate(-50%, -50%)',
-  width: 400,
+  maxWidth: 400,
+  width: '100%',
   bgcolor: 'background.paper',
   borderRadius: 2,
   boxShadow: 24,
@@ -35,11 +39,15 @@ const style = {
 const HeaderContent = () => {
   const { city } = useSelector((state) => state.action);
   const { cities } = useSelector((state) => state.catalog);
-  const [open, setOpen] = React.useState(false);
+  const { modalOpen: open } = useSelector((state) => state.menu);
   const [selected, setSelected] = React.useState(city);
-  const handleOpen = () => setOpen(true);
-  const handleClose = () => setOpen(false);
   const dispatch = useDispatch();
+  const handleOpen = () => {
+    dispatch(openModal({ modalOpen: true }));
+  };
+  const handleClose = () => {
+    dispatch(openModal({ modalOpen: false }));
+  };
   return (
     <>
       <Container maxWidth="xl">
@@ -47,8 +55,11 @@ const HeaderContent = () => {
           disableGutters
           sx={{ minHeight: '50px !important', justifyContent: 'space-between' }}
         >
-          <LogoSection to="/" />
-          <Box>
+          <LogoSection
+            sx={{ width: { xs: '50px', sm: '100px' }, height: { xs: '50px', sm: '100px' } }}
+            to="/"
+          />
+          <Box sx={{ display: { xs: 'none', sm: 'block' } }}>
             <Box sx={{ display: 'flex', alignItems: 'flex-end' }}>
               <div>
                 <Button color="primary" startIcon={<LocationOnIcon />} onClick={handleOpen}>
@@ -78,6 +89,11 @@ const HeaderContent = () => {
                 Добавить анкету
               </Button>
             </Box>
+          </Box>
+          <Box sx={{ display: { xs: 'block', sm: 'none' } }}>
+            <IconButton color="primary" onClick={() => dispatch(openDrawer({ drawerOpen: true }))}>
+              <MenuIcon />
+            </IconButton>
           </Box>
         </Toolbar>
       </Container>

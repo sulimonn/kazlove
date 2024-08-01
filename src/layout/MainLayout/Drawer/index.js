@@ -7,7 +7,6 @@ import { Box, Drawer, useMediaQuery } from '@mui/material';
 
 // project import
 import DrawerHeader from './DrawerHeader';
-import DrawerContent from './DrawerContent';
 import MiniDrawerStyled from './MiniDrawerStyled';
 import { drawerWidth } from 'config';
 
@@ -21,7 +20,6 @@ const MainDrawer = ({ open, handleDrawerToggle, window }) => {
   const container = window !== undefined ? () => window().document.body : undefined;
 
   // header content
-  const drawerContent = useMemo(() => <DrawerContent />, []);
   const drawerHeader = useMemo(() => <DrawerHeader open={open} />, [open]);
 
   return (
@@ -29,7 +27,6 @@ const MainDrawer = ({ open, handleDrawerToggle, window }) => {
       {!matchDownMD ? (
         <MiniDrawerStyled variant="permanent" open={open}>
           {drawerHeader}
-          {drawerContent}
         </MiniDrawerStyled>
       ) : (
         <Drawer
@@ -45,12 +42,11 @@ const MainDrawer = ({ open, handleDrawerToggle, window }) => {
               width: drawerWidth,
               borderRight: `1px solid ${theme.palette.divider}`,
               backgroundImage: 'none',
-              boxShadow: 'inherit'
-            }
+              boxShadow: 'inherit',
+            },
           }}
         >
           {open && drawerHeader}
-          {open && drawerContent}
         </Drawer>
       )}
     </Box>
@@ -60,7 +56,7 @@ const MainDrawer = ({ open, handleDrawerToggle, window }) => {
 MainDrawer.propTypes = {
   open: PropTypes.bool,
   handleDrawerToggle: PropTypes.func,
-  window: PropTypes.object
+  window: PropTypes.object,
 };
 
 export default MainDrawer;

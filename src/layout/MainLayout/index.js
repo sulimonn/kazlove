@@ -8,7 +8,7 @@ import { Box, useMediaQuery } from '@mui/material';
 
 // project import
 import Header from './Header';
-
+import Drawer from './Drawer';
 // types
 import { openDrawer } from 'store/reducers/menu';
 
@@ -43,6 +43,7 @@ const MainLayout = () => {
 
   return (
     <Box sx={{ display: 'flex', width: '100%', flexWrap: 'wrap' }}>
+      <Drawer open={open} handleDrawerToggle={handleDrawerToggle} />
       <Header open={open} handleDrawerToggle={handleDrawerToggle} />
       <Box component="main" sx={{ width: '100%', flexGrow: 1, p: { xs: 2, sm: 3 } }}>
         <Outlet />
