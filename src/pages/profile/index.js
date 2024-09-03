@@ -17,10 +17,10 @@ const Profile = () => {
   const girl = useSelector((state) => state.girls).girls.find((girl) => girl.id === parseInt(id));
   return (
     <Container maxWidth="xl">
-      <Box sx={{ display: 'flex', gap: 3 }}>
+      <Box sx={{ display: 'flex', gap: 3, flexDirection: { xs: 'column', sm: 'row' } }}>
         <Box
-          height={'550px'}
-          width={'400px'}
+          height={{ xs: 350, sm: 550 }}
+          width={{ xs: '100%', sm: 400 }}
           bgcolor={'background.paper'}
           borderRadius={2}
           sx={{
@@ -80,7 +80,7 @@ const Profile = () => {
               </Button>
             )}
           </Box>
-          <Box display={'flex'} mt={2} gap={2}>
+          <Box display={'flex'} mt={2} gap={2} flexDirection={{ xs: 'column', md: 'row' }}>
             <Typography
               variant="body1"
               color="text.secondary"
