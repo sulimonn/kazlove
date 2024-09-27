@@ -1,14 +1,16 @@
 import { combineReducers } from 'redux';
-import girls from './girls';
 import action from './action';
 import catalog from './catalog';
 import menu from './menu';
+import auth from './auth';
+import { apiSlice } from './apiSlice';
 
 const reducers = combineReducers({
-  girls,
   action,
   catalog,
   menu,
+  [auth.reducerPath]: auth.reducer,
+  [apiSlice.reducerPath]: apiSlice.reducer,
 });
 
 export default reducers;

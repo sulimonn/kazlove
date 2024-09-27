@@ -1,14 +1,12 @@
 import React from 'react';
-import { useDispatch, useSelector } from 'react-redux';
+import { useDispatch } from 'react-redux';
 
 // material-ui
 import { Button } from '@mui/material';
-import { setFilterOptions } from 'store/reducers/action';
-const FilterItem = ({ option, filter }) => {
+import { setFilterOptions, setGender } from 'store/reducers/action';
+const FilterItem = ({ option, filter, checked }) => {
   const ref = React.useRef();
-  const { filterOptions } = useSelector((state) => state.action);
   const dispatch = useDispatch();
-  const checked = filterOptions.find((child) => child.id === option.id)?.checked || false;
 
   return (
     <Button
@@ -26,14 +24,16 @@ const FilterItem = ({ option, filter }) => {
         name={option.id}
         value={option.id}
         onChange={(e) => {
-          dispatch(
-            setFilterOptions({
-              id: option.id,
-              checked: e.target.checked,
-              option: option.name,
-              filter,
-            })
-          );
+          if (filter === 'gender') {
+            dispatch(setGender(e.target.value));
+          } else {
+            dispatch(
+              setFilterOptions({
+                id: option.id,
+                filter,
+              })
+            );
+          }
         }}
       />
       {option.name}

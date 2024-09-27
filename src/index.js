@@ -15,6 +15,7 @@ import 'assets/third-party/apex-chart.css';
 import App from './App';
 import { store } from 'store';
 import reportWebVitals from './reportWebVitals';
+import AuthProvider from 'contexts/index';
 
 // ==============================|| MAIN - REACT DOM RENDER  ||============================== //
 
@@ -22,11 +23,13 @@ const container = document.getElementById('root');
 const root = createRoot(container); // createRoot(container!) if you use TypeScript
 root.render(
   <StrictMode>
-    <ReduxProvider store={store}>
-      <BrowserRouter>
-        <App />
-      </BrowserRouter>
-    </ReduxProvider>
+    <BrowserRouter>
+      <ReduxProvider store={store}>
+        <AuthProvider>
+          <App />
+        </AuthProvider>
+      </ReduxProvider>
+    </BrowserRouter>
   </StrictMode>
 );
 

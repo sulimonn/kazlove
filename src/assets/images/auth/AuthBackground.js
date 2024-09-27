@@ -5,7 +5,15 @@ import { Box } from '@mui/material';
 
 const AuthBackground = () => {
   return (
-    <Box sx={{ position: 'absolute', filter: 'blur(40px)', zIndex: -1, bottom: 0 }}>
+    <Box
+      sx={{
+        position: 'absolute',
+        filter: 'blur(40px)',
+        zIndex: -1,
+        bottom: 0,
+        backdropFilter: 'blur(40px)',
+      }}
+    >
       <svg
         xmlns="http://www.w3.org/2000/svg"
         zoomAndPan="magnify"

@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Link as RouterLink } from 'react-router-dom';
+import { Link as RouterLink, useNavigate } from 'react-router-dom';
 
 // material-ui
 import {
@@ -29,10 +29,13 @@ import { strengthColor, strengthIndicator } from 'utils/password-strength';
 
 // assets
 import { EyeOutlined, EyeInvisibleOutlined } from '@ant-design/icons';
+import { useAuth } from 'contexts/index';
 
 // ============================|| FIREBASE - REGISTER ||============================ //
 
 const AuthRegister = () => {
+  const { register } = useAuth();
+  const navigate = useNavigate();
   const [level, setLevel] = useState();
   const [showPassword, setShowPassword] = useState(false);
   const handleClickShowPassword = () => {
@@ -56,20 +59,30 @@ const AuthRegister = () => {
     <>
       <Formik
         initialValues={{
-          name: '',
           email: '',
           password: '',
           submit: null,
         }}
         validationSchema={Yup.object().shape({
-          name: Yup.string().max(255).required('First Name is required'),
-          email: Yup.string().email('Must be a valid email').max(255).required('Email is required'),
-          password: Yup.string().max(255).required('Password is required'),
+          email: Yup.string()
+            .email('Введите корректный email')
+            .max(255)
+            .required('Email обязателен'),
+          password: Yup.string().max(255).required('Пароль обязателен'),
         })}
         onSubmit={async (values, { setErrors, setStatus, setSubmitting }) => {
           try {
-            setStatus({ success: false });
-            setSubmitting(false);
+            const response = await register(values);
+            if (response?.status === 400) {
+              setErrors({
+                email: true,
+                submit: 'Пользователь с таким Email уже существует',
+              });
+              setStatus({ success: false });
+            }
+            if (!response) {
+              navigate('/', { replace: true }); // Redirect to the main page
+            }
           } catch (err) {
             console.error(err);
             setStatus({ success: false });
@@ -81,28 +94,6 @@ const AuthRegister = () => {
         {({ errors, handleBlur, handleChange, handleSubmit, isSubmitting, touched, values }) => (
           <form noValidate onSubmit={handleSubmit}>
             <Grid container spacing={3}>
-              <Grid item xs={12}>
-                <Stack spacing={1}>
-                  <InputLabel htmlFor="name-signup">Имя*</InputLabel>
-                  <OutlinedInput
-                    id="name-login"
-                    type="name"
-                    value={values.name}
-                    name="name"
-                    onBlur={handleBlur}
-                    onChange={handleChange}
-                    placeholder="John"
-                    fullWidth
-                    error={Boolean(touched.name && errors.name)}
-                  />
-                  {touched.name && errors.name && (
-                    <FormHelperText error id="helper-text-name-signup">
-                      {errors.name}
-                    </FormHelperText>
-                  )}
-                </Stack>
-              </Grid>
-
               <Grid item xs={12}>
                 <Stack spacing={1}>
                   <InputLabel htmlFor="email-signup">Email*</InputLabel>

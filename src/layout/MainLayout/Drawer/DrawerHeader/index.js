@@ -1,3 +1,4 @@
+import React from 'react';
 import PropTypes from 'prop-types';
 import { Link } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
@@ -13,13 +14,20 @@ import LocationOnIcon from '@mui/icons-material/LocationOn';
 import DrawerHeaderStyled from './DrawerHeaderStyled';
 import Logo from 'components/Logo';
 import { openModal } from 'store/reducers/menu';
+import { useAuth } from 'contexts/index';
+import { useFetchCitiesQuery } from 'store/reducers/api';
 
 // ==============================|| DRAWER HEADER ||============================== //
 
 const DrawerHeader = ({ open }) => {
+  const { profile, isAuth, logout } = useAuth();
   const theme = useTheme();
-  const dispatch = useDispatch();
+  const { data: cities = [] } = useFetchCitiesQuery();
   const { city } = useSelector((state) => state.action);
+  const dispatch = useDispatch();
+  const handleOpen = () => {
+    dispatch(openModal({ modalOpen: true }));
+  };
 
   return (
     // only available in paid version
@@ -27,39 +35,53 @@ const DrawerHeader = ({ open }) => {
       <Stack direction="column" spacing={1} alignItems="start" mt={2}>
         <Logo to="/" />
         <Box>
-          <Box my={2}>
-            <div>
+          <Box my={2} display={!isAuth ? 'block' : 'flex'} flexWrap="wrap">
+            <Box sx={{ display: 'flex', alignItems: 'center' }}>
               <Button
                 color="primary"
                 startIcon={<LocationOnIcon />}
-                onClick={() => {
-                  dispatch(openModal({ modalOpen: true }));
-                }}
+                onClick={handleOpen}
+                sx={{ textTransform: 'none', whiteSpace: 'nowrap' }}
               >
-                {city}
-              </Button>
-            </div>
-            <Box sx={{ display: 'flex', alignItems: 'center' }}>
-              <Button component={Link} to="/login" color="inherit">
-                Войти
-              </Button>
-              <Typography variant="body2" color="textSecondary" sx={{ mx: '5px' }}>
-                /
-              </Typography>
-              <Button component={Link} to="/register" color="inherit">
-                Регистрация
+                {city
+                  ? [...cities, { id: -1, name: 'Все города' }]?.find((item) => item.id === city)
+                      ?.name
+                  : 'Выбрать город'}
               </Button>
             </Box>
+            {!isAuth ? (
+              <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                <Button component={Link} to="/login" color="inherit">
+                  Войти
+                </Button>
+                <Typography variant="body2" color="textSecondary" sx={{ mx: '5px' }}>
+                  /
+                </Typography>
+                <Button component={Link} to="/register" color="inherit">
+                  Регистрация
+                </Button>
+              </Box>
+            ) : (
+              <Box sx={{ display: 'flex', alignItems: 'center', height: '100%' }}>
+                <Button
+                  color="secondary"
+                  onClick={() => {
+                    logout();
+                  }}
+                >
+                  Выйти
+                </Button>
+              </Box>
+            )}
           </Box>
           <Box>
             <Button
               component={Link}
-              to="/form"
+              to={!!profile ? '/profile/me' : '/profile/add'}
               color="primary"
               variant="contained"
-              style={{ marginLeft: '10px' }}
             >
-              Добавить анкету
+              {!!profile ? 'Моя анкета' : 'Добавить анкету'}
             </Button>
           </Box>
         </Box>

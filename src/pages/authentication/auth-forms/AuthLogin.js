@@ -1,5 +1,6 @@
 import React from 'react';
-import { Link as RouterLink } from 'react-router-dom';
+import { Link as RouterLink, useNavigate } from 'react-router-dom';
+import { useAuth } from 'contexts';
 
 // material-ui
 import {
@@ -30,6 +31,8 @@ import { EyeOutlined, EyeInvisibleOutlined } from '@ant-design/icons';
 // ============================|| FIREBASE - LOGIN ||============================ //
 
 const AuthLogin = () => {
+  const { login } = useAuth();
+  const navigate = useNavigate();
   const [showPassword, setShowPassword] = React.useState(false);
   const handleClickShowPassword = () => {
     setShowPassword(!showPassword);
@@ -43,8 +46,8 @@ const AuthLogin = () => {
     <>
       <Formik
         initialValues={{
-          email: 'info@codedthemes.com',
-          password: '123456',
+          email: 'sdf@wef.qwe',
+          password: '12345',
           submit: null,
         }}
         validationSchema={Yup.object().shape({
@@ -56,11 +59,29 @@ const AuthLogin = () => {
         })}
         onSubmit={async (values, { setErrors, setStatus, setSubmitting }) => {
           try {
-            setStatus({ success: false });
-            setSubmitting(false);
+            const response = await login({
+              social_link: values.email,
+              password: values.password,
+            });
+            console.log(response);
+
+            if (response?.status === 400 || response?.originalStatus === 500) {
+              setErrors({
+                email: true,
+                password: true,
+                submit: 'Неправильная почта или пароль',
+              });
+              setStatus({ success: false });
+            }
+
+            if (response === null) {
+              navigate('/', { replace: true }); // Redirect to the main page
+            }
           } catch (err) {
+            console.error(err);
             setStatus({ success: false });
             setErrors({ submit: err.message });
+          } finally {
             setSubmitting(false);
           }
         }}
@@ -82,7 +103,7 @@ const AuthLogin = () => {
                     fullWidth
                     error={Boolean(touched.email && errors.email)}
                   />
-                  {touched.email && errors.email && (
+                  {touched.email && errors.email && typeof errors.email === 'string' && (
                     <FormHelperText error id="standard-weight-helper-text-email-login">
                       {errors.email}
                     </FormHelperText>
@@ -116,7 +137,7 @@ const AuthLogin = () => {
                     }
                     placeholder="Enter password"
                   />
-                  {touched.password && errors.password && (
+                  {touched.password && errors.password && typeof errors.password === 'string' && (
                     <FormHelperText error id="standard-weight-helper-text-password-login">
                       {errors.password}
                     </FormHelperText>

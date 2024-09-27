@@ -5,7 +5,27 @@ const initialState = {
   drawerType: '',
   sortOption: {},
   filterOptions: [],
-  city: 'Москва',
+  city: parseInt(localStorage.getItem('city')) || -1,
+  gender: localStorage.getItem('gender')
+    ? localStorage.getItem('gender').toString().split(',').map(Number)
+    : [],
+  services: localStorage.getItem('services') ? JSON.parse(localStorage.getItem('services')) : [],
+  breast_size: localStorage.getItem('breast_size')
+    ? localStorage.getItem('breast_size').toString().split(',').map(Number)
+    : [],
+  age: parseInt(localStorage.getItem('age'))
+    ? localStorage.getItem('age').split(',').map(Number)
+    : [],
+  height: parseInt(localStorage.getItem('height'))
+    ? localStorage.getItem('height').split(',').map(Number)
+    : [],
+  weight: parseInt(localStorage.getItem('weight'))
+    ? localStorage.getItem('weight').split(',').map(Number)
+    : [],
+  profile_type: parseInt(localStorage.getItem('profile_type')),
+  price: parseInt(localStorage.getItem('price'))
+    ? localStorage.getItem('price').split(',').map(Number)
+    : [],
 };
 
 const actionSlice = createSlice({
@@ -26,23 +46,57 @@ const actionSlice = createSlice({
       state.sortOption = action.payload;
     },
     setFilterOptions: (state, action) => {
-      const option = action.payload;
-
-      if (state.filterOptions.find((item) => item.id === option.id)) {
-        state.filterOptions = state.filterOptions.map((item) =>
-          item.id === option.id ? { ...item, checked: option.checked } : item
-        );
-      } else {
-        state.filterOptions = [...state.filterOptions, { ...option }];
-      }
+      const { id, filter } = action.payload;
+      state[filter] = id;
+      localStorage.setItem(filter, id);
+    },
+    setSwiperFilter: (state, action) => {
+      const { id, option } = action.payload;
+      state[id] = option;
+      localStorage.setItem(id, option);
     },
     setCity: (state, action) => {
-      state.city = action.payload;
+      if (action.payload === -1) {
+        state.city = null;
+        delete state.city;
+        localStorage.removeItem('city');
+      } else {
+        state.city = action.payload;
+        localStorage.setItem('city', action.payload);
+      }
+    },
+    setGender: (state, action) => {
+      const id = parseInt(action.payload);
+      const gender = state.gender.map((item) => parseInt(item));
+
+      if (gender.includes(id)) {
+        gender.splice(gender.indexOf(id), 1);
+      } else {
+        gender.push(id);
+      }
+
+      state.gender = gender;
+      localStorage.setItem('gender', gender);
+    },
+    setServices: (state, action) => {
+      if (JSON.stringify(state.services) !== JSON.stringify(action.payload)) {
+        state.services = action.payload;
+        localStorage.setItem('services', JSON.stringify(action.payload));
+      }
     },
   },
 });
 
-export const { openDrawer, closeDrawer, setDrawerType, setSortOption, setFilterOptions, setCity } =
-  actionSlice.actions;
+export const {
+  openDrawer,
+  closeDrawer,
+  setDrawerType,
+  setSortOption,
+  setFilterOptions,
+  setCity,
+  setGender,
+  setSwiperFilter,
+  setServices,
+} = actionSlice.actions;
 
 export default actionSlice.reducer;

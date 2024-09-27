@@ -40,7 +40,10 @@ const Palette = (mode) => {
   paletteColor.primary.contrastText = '#fff';
   paletteColor.secondary.main = '#6e5ae2';
   paletteColor.secondary.light = '#ad90ff';
+  paletteColor.secondary.lighter = '#8d7de8';
   paletteColor.secondary.dark = '#6e5ae2';
+  paletteColor.secondary.darker = '#271782';
+  paletteColor.secondary.contrastText = '#fff';
 
   return createTheme({
     palette: {

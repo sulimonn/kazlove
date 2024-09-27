@@ -4,14 +4,11 @@ import { useSelector, useDispatch } from 'react-redux';
 // material-ui
 import { Menu, Box, Typography, IconButton } from '@mui/material';
 import SortIcon from '@mui/icons-material/Sort';
-import { setGirls } from 'store/reducers/girls';
 import { setSortOption } from 'store/reducers/action';
 
-const SortMenu = ({ anchorEl, open, handleClose }) => {
+const SortMenu = ({ anchorEl, open, handleClose, girls = [], setGirls }) => {
   const { sort } = useSelector((state) => state.catalog);
   const { sortOption } = useSelector((state) => state.action);
-  console.log(sortOption);
-  const { girls } = useSelector((state) => state.girls);
   const dispatch = useDispatch();
   return (
     <Menu
@@ -54,7 +51,7 @@ const SortMenu = ({ anchorEl, open, handleClose }) => {
                   }
                   return 0;
                 });
-                dispatch(setGirls(sorted));
+                setGirls(sorted);
               }}
               sx={{
                 border: item.id === sortOption.id && sortOption.option === 'desc' && '1px solid',
@@ -76,7 +73,7 @@ const SortMenu = ({ anchorEl, open, handleClose }) => {
                   }
                   return 0;
                 });
-                dispatch(setGirls(sorted));
+                setGirls(sorted);
               }}
               sx={{
                 transform: 'rotateX(180deg)',

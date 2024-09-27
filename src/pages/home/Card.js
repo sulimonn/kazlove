@@ -1,16 +1,40 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 
-import { Scrollbar, A11y } from 'swiper/modules';
+import { Scrollbar, A11y, Autoplay } from 'swiper/modules';
 import { Swiper, SwiperSlide } from 'swiper/react';
 
 import 'swiper/css';
 import 'swiper/css/scrollbar';
 // material-ui
 import { Box, Typography, Button } from '@mui/material';
+import { useGetProfilePhotosQuery } from 'store/reducers/api';
 
 const Card = ({ girl }) => {
   const [showContact, setShowContact] = React.useState(false);
+  const [photos, setPhotos] = React.useState();
+
+  const swiperRef = React.useRef(null);
+
+  const { data = [] } = useGetProfilePhotosQuery(girl.id);
+
+  React.useEffect(() => {
+    if (data.length > 0) {
+      setPhotos(
+        data.map((photo) => ({
+          id: photo[0],
+          upload: process.env.REACT_APP_SERVER_URL + photo[1],
+        }))
+      );
+    }
+  }, [data]);
+
+  React.useEffect(() => {
+    if (swiperRef.current) {
+      swiperRef.current.autoplay.stop();
+    }
+  }, []);
+
   return (
     <Box
       height={'550px'}
@@ -27,14 +51,17 @@ const Card = ({ girl }) => {
           bottom: 'var(--swiper-scrollbar-top, auto)',
         },
       }}
+      onMouseEnter={() => swiperRef.current.autoplay.start()} // stop autoplay on hover
+      onMouseLeave={() => swiperRef.current.autoplay.stop()}
     >
       <Swiper
-        // install Swiper modules
-        modules={[Scrollbar, A11y]}
+        modules={[Scrollbar, A11y, Autoplay]}
         spaceBetween={0}
         slidesPerView={1}
         scrollbar={{ draggable: true }}
         style={{ height: '100%' }}
+        autoplay={{ delay: 3000, disableOnInteraction: false }}
+        onSwiper={(swiper) => (swiperRef.current = swiper)}
       >
         <SwiperSlide>
           <Link to={`/profile/${girl.id}`} style={{ textDecoration: 'none', color: 'inherit' }}>
@@ -43,23 +70,26 @@ const Card = ({ girl }) => {
               width={'100%'}
               sx={{ mask: 'linear-gradient(360deg, rgba(0, 0, 0, 0) 5%, rgba(0, 0, 0, 1) 20%)' }}
             >
-              <img
-                src={require('assets/img/' + girl.images[0])}
-                alt="girl"
-                style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-              />
+              {photos && photos[0]?.upload && (
+                <img
+                  src={photos[0]?.upload}
+                  alt="girl"
+                  style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                  loading="lazy"
+                />
+              )}
             </Box>
             <Box position={'absolute'} bottom={0} p={2} minHeight={'170px'}>
               <Typography variant="h3" color="text.primary">
                 {girl.name} {girl.age}
               </Typography>
               <Typography variant="body1" color="text.secondary" fontWeight={'900'} my={1}>
-                {girl.city}
+                {girl?.city?.name}
               </Typography>
               <Typography variant="body1" color="text.secondary" whiteSpace={'pre-line'} mb={2}>
-                {girl.description.length > 80
-                  ? girl.description.substring(0, 80) + '...'
-                  : girl.description}
+                {girl.additional_info.length > 80
+                  ? girl.additional_info.substring(0, 80) + '...'
+                  : girl.additional_info}
               </Typography>
               <Typography
                 variant="h4"
@@ -80,22 +110,21 @@ const Card = ({ girl }) => {
               sx={{ mask: 'linear-gradient(360deg, rgba(0, 0, 0, 0) 5%, rgba(0, 0, 0, 1) 20%)' }}
             >
               <img
-                src={require('assets/img/' + girl.images[1])}
+                src={photos && photos[1]?.upload}
                 alt="girl"
                 style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                loading="lazy"
               />
             </Box>
             <Box position={'absolute'} bottom={0} p={2} minHeight={'140px'}>
               <Typography variant="h5" color="text.secondary" whiteSpace={'pre-line'} mb={1}>
-                {girl.nation}, {girl.type.toLowerCase()}
+                {girl.nationality}, {girl?.profile_type?.name}
               </Typography>
               <Typography variant="h5" color="text.secondary" whiteSpace={'pre-line'} mb={1}>
-                {girl.chest} размер груди, {girl.weight}, {girl.height}
+                {girl.breast_size} размер груди, {girl.weight}, {girl.height}
               </Typography>
               <Typography variant="body1" color="text.secondary" whiteSpace={'pre-line'} mb={2}>
-                {girl.services.join(', ').length > 80
-                  ? girl.services.join(', ').substring(0, 80) + '...'
-                  : girl.services.join(', ')}
+                {girl?.services?.map((service) => service.name).join(', ')}
               </Typography>
             </Box>
           </Link>
@@ -107,9 +136,10 @@ const Card = ({ girl }) => {
             sx={{ mask: 'linear-gradient(360deg, rgba(0, 0, 0, 0) 5%, rgba(0, 0, 0, 1) 20%)' }}
           >
             <img
-              src={require('assets/img/' + girl.images[2])}
+              src={photos && photos[2]?.upload}
               alt="girl"
               style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+              loading="lazy"
             />
           </Box>
           <Box
@@ -129,6 +159,8 @@ const Card = ({ girl }) => {
               minHeight={'140px'}
               width={'100%'}
               gap={2}
+              onMouseEnter={() => swiperRef.current.autoplay.stop()}
+              onMouseLeave={() => swiperRef.current.autoplay.start()}
             >
               {!showContact ? (
                 <Button

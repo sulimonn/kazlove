@@ -5,229 +5,73 @@ export const actionsSlice = createSlice({
   initialState: {
     filter: [
       {
-        id: 'gender',
-        name: 'Пол',
-        title: 'По полу',
-        value: ['Мужской', 'Женский'],
-        options: [
-          {
-            id: 'gender-female',
-            name: 'Женский',
-          },
-          {
-            id: 'gender-male',
-            name: 'Мужской',
-          },
-        ],
-      },
-      {
-        id: 'chest',
+        id: 'breast_size',
         name: 'Размер груди',
         title: 'По размеру груди',
-        value: ['1', '1.5', '2', '2.5', '3', '3+'],
-
-        options: [
-          {
-            id: 'chest-1',
-            name: '1',
-          },
-          {
-            id: 'chest-1.5',
-            name: '1.5',
-          },
-          {
-            id: 'chest-2',
-            name: '2',
-          },
-          {
-            id: 'chest-2.5',
-            name: '2.5',
-          },
-          {
-            id: 'chest-3',
-            name: '3',
-          },
-          {
-            id: 'chest-3+',
-            name: '3+',
-          },
-        ],
+        type: 'swiper',
+        max: 10,
+        min: 0,
+        step: 0.1,
+        selected: [],
       },
       {
         id: 'age',
         name: 'Возраст',
         title: 'По возрасту',
-        value: ['18', '18-25', '25-40', '40-60', '60+'],
-        options: [
-          {
-            id: 'age-18',
-            name: '18',
-          },
-          {
-            id: 'age-18-25',
-            name: '18-25',
-          },
-          {
-            id: 'age-25-40',
-            name: '25-40',
-          },
-          {
-            id: 'age-40-60',
-            name: '40-60',
-          },
-          {
-            id: 'age-60+',
-            name: '60+',
-          },
-        ],
+        type: 'swiper',
+        max: 99,
+        min: 18,
+        step: 1,
+        selected: [],
       },
       {
         id: 'height',
         name: 'Рост',
         title: 'По росту',
-        value: ['150-160', '160-170', '170-180', '180-190', '190+'],
-        options: [
-          {
-            id: 'height-150-160',
-            name: '150-160',
-          },
-          {
-            id: 'height-160-170',
-            name: '160-170',
-          },
-          {
-            id: 'height-170-180',
-            name: '170-180',
-          },
-          {
-            id: 'height-180-190',
-            name: '180-190',
-          },
-          {
-            id: 'height-190+',
-            name: '190+',
-          },
-        ],
+        type: 'swiper',
+        max: 250,
+        min: 100,
+        step: 1,
+        selected: [],
       },
       {
         id: 'weight',
         name: 'Вес',
         title: 'По весу',
-        value: ['40-50', '50-60', '60-70', '70-80', '80+'],
-        options: [
-          {
-            id: 'weight-40-50',
-            name: '40-50',
-          },
-          {
-            id: 'weight-50-60',
-            name: '50-60',
-          },
-          {
-            id: 'weight-60-70',
-            name: '60-70',
-          },
-          {
-            id: 'weight-70-80',
-            name: '70-80',
-          },
-          {
-            id: 'weight-80+',
-            name: '80+',
-          },
-        ],
+        type: 'swiper',
+        max: 200,
+        min: 18,
+        step: 1,
+        selected: [],
       },
       {
         id: 'price',
         name: 'Цена',
         title: 'По цене',
-        value: ['1000-3000', '3000-6000', '6000+'],
-        options: [
-          {
-            id: 'price-1000-3000',
-            name: '1000-3000',
-          },
-          {
-            id: 'price-3000-6000',
-            name: '3000-6000',
-          },
-          {
-            id: 'price-6000+',
-            name: '6000+',
-          },
-        ],
+        type: 'swiper',
+        max: 100000,
+        min: 0,
+        step: 500,
+        selected: [],
       },
       {
-        id: 'name',
-        name: 'Имя',
-        title: 'По имени',
-        value: ['Имя', 'Фамилия'],
-        options: [
-          {
-            id: 'name',
-            name: 'Имя',
-          },
-          {
-            id: 'surname',
-            name: 'Фамилия',
-          },
-        ],
-      },
-      {
-        id: 'nation',
+        id: 'nationality',
         name: 'Нация',
         title: 'По нации',
         value: ['Русский', 'Марсианка'],
+        type: 'button',
         options: [
           {
-            id: 'nation-russian',
+            id: 'nationality-russian',
             name: 'Русский',
           },
           {
-            id: 'nation-marsian',
+            id: 'nationality-marsian',
             name: 'Марсианка',
           },
         ],
+        selected: [],
       },
-      {
-        id: 'services',
-        name: 'Услуги',
-        title: 'По услугам',
-        value: ['Массаж', 'Что то', 'Ещё что то'],
-        options: [
-          {
-            id: 'services-massage',
-            name: 'Массаж',
-          },
-          {
-            id: 'services-what',
-            name: 'Что то',
-          },
-          {
-            id: 'services-else',
-            name: 'Ещё что то',
-          },
-        ],
-      },
-    ],
-    cities: [
-      'Москва',
-      'Санкт-Петербург',
-      'Новосибирск',
-      'Екатеринбург',
-      'Нижний Новгород',
-      'Челябинск',
-      'Ростов-на-Дону',
-      'Самара',
-      'Казань',
-      'Омск',
-      'Уфа',
-      'Пермь',
-      'Красноярск',
-      'Воронеж',
-      'Тюмень',
-      'Волгоград',
-      'Краснодар',
     ],
     sort: [
       {
@@ -274,8 +118,20 @@ export const actionsSlice = createSlice({
         return item;
       });
     },
+    selectFilter: (state, action) => {
+      const { id, value } = action.payload;
+      state.actions = state.actions.map((item) => {
+        if (item.id === id) {
+          return {
+            ...item,
+            selected: value,
+          };
+        }
+        return item;
+      });
+    },
   },
 });
 
-export const { setActions, setSortOption } = actionsSlice.actions;
+export const { setActions, setSortOption, selectFilter } = actionsSlice.actions;
 export default actionsSlice.reducer;

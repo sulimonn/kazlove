@@ -21,6 +21,8 @@ import MenuIcon from '@mui/icons-material/Menu';
 import LogoSection from 'components/Logo';
 import { setCity } from 'store/reducers/action';
 import { openDrawer, openModal } from 'store/reducers/menu';
+import { useAuth } from 'contexts/index';
+import { useFetchCitiesQuery } from 'store/reducers/api';
 
 // ==============================|| HEADER - CONTENT ||============================== //
 const style = {
@@ -37,8 +39,9 @@ const style = {
 };
 
 const HeaderContent = () => {
+  const { isAuth, logout, profile } = useAuth();
+  const { data: cities = [] } = useFetchCitiesQuery();
   const { city } = useSelector((state) => state.action);
-  const { cities } = useSelector((state) => state.catalog);
   const { modalOpen: open } = useSelector((state) => state.menu);
   const [selected, setSelected] = React.useState(city);
   const dispatch = useDispatch();
@@ -48,6 +51,7 @@ const HeaderContent = () => {
   const handleClose = () => {
     dispatch(openModal({ modalOpen: false }));
   };
+
   return (
     <>
       <Container maxWidth="xl">
@@ -60,33 +64,63 @@ const HeaderContent = () => {
             to="/"
           />
           <Box sx={{ display: { xs: 'none', sm: 'block' } }}>
-            <Box sx={{ display: 'flex', alignItems: 'flex-end' }}>
-              <div>
-                <Button color="primary" startIcon={<LocationOnIcon />} onClick={handleOpen}>
-                  {city}
-                </Button>
-              </div>
-              <Box sx={{ display: 'flex', alignItems: 'center' }} ml={2}>
-                <Button component={Link} to="/login" color="inherit">
-                  Войти
-                </Button>
-                <Typography variant="body2" color="textSecondary" sx={{ mx: '5px' }}>
-                  /
-                </Typography>
-                <Button component={Link} to="/register" color="inherit">
-                  Регистрация
+            <Box
+              sx={{
+                display: 'flex',
+                alignItems: isAuth ? 'center' : 'center',
+                ml: isAuth ? 'auto' : 0,
+                justifyContent: 'space-between',
+              }}
+            >
+              <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                <Button
+                  color="primary"
+                  startIcon={<LocationOnIcon />}
+                  onClick={handleOpen}
+                  sx={{ textTransform: 'none' }}
+                >
+                  {selected
+                    ? [...cities, { id: -1, name: 'Все города' }]?.find(
+                        (item) => item.id === selected
+                      )?.name
+                    : 'Выбрать город'}
                 </Button>
               </Box>
+              {!isAuth ? (
+                <Box sx={{ display: 'flex', alignItems: 'center' }} ml={2}>
+                  <Button component={Link} to="/login" color="inherit">
+                    Войти
+                  </Button>
+                  <Typography variant="body2" color="textSecondary" sx={{ mx: '5px' }}>
+                    /
+                  </Typography>
+                  <Button component={Link} to="/register" color="inherit">
+                    Регистрация
+                  </Button>
+                </Box>
+              ) : (
+                <Box sx={{ display: 'flex', alignItems: 'center', height: '100%' }} ml={2}>
+                  <Button
+                    color="secondary"
+                    style={{ marginLeft: '10px' }}
+                    onClick={() => {
+                      logout();
+                    }}
+                  >
+                    Выйти
+                  </Button>
+                </Box>
+              )}
             </Box>
             <Box display="flex" justifyContent="flex-end">
               <Button
                 component={Link}
-                to="/form"
+                to={!!profile ? '/profile/me' : '/profile/add'}
                 color="primary"
                 variant="contained"
                 style={{ marginLeft: '10px' }}
               >
-                Добавить анкету
+                {!!profile ? 'Моя анкета' : 'Добавить анкету'}
               </Button>
             </Box>
           </Box>
@@ -108,13 +142,16 @@ const HeaderContent = () => {
             Выберите свой город
           </Typography>
           <Select
-            value={selected}
-            onChange={(e) => setSelected(e.target.value)}
+            value={selected || -1}
+            onChange={(e) => {
+              setSelected(e.target.value);
+            }}
             sx={{ width: '100%', my: 3, borderRadius: 40 }}
           >
-            {cities.map((item, index) => (
-              <MenuItem key={index} value={item}>
-                {item}
+            <MenuItem value={-1}>Все города</MenuItem>
+            {cities?.map((item) => (
+              <MenuItem key={item.id} value={item.id}>
+                {item.name}
               </MenuItem>
             ))}
           </Select>
