@@ -27,6 +27,13 @@ const api = apiSlice.injectEndpoints({
       }),
       invalidatesTags: ['Profile'],
     }),
+    deleteProfile: builder.mutation({
+      query: (id) => ({
+        url: `/profiles/${id}`,
+        method: 'DELETE',
+      }),
+      invalidatesTags: ['Profile'],
+    }),
     getProfile: builder.query({
       query: (id) => `/profiles/${id}`,
       providesTags: ['Profile'],
@@ -47,6 +54,14 @@ const api = apiSlice.injectEndpoints({
       query: (data) => ({
         url: '/profiles-services/add',
         method: 'POST',
+        body: data,
+      }),
+      invalidatesTags: ['Service'],
+    }),
+    updateService: builder.mutation({
+      query: (data) => ({
+        url: '/profiles-services/update',
+        method: 'PUT',
         body: data,
       }),
       invalidatesTags: ['Service'],
@@ -97,6 +112,13 @@ const api = apiSlice.injectEndpoints({
       query: (profile_id) => `/comments/profile/${profile_id}`,
       providesTags: ['Comments'],
     }),
+    deleteComment: builder.mutation({
+      query: (id) => ({
+        url: `/comments/${id}`,
+        method: 'DELETE',
+      }),
+      invalidatesTags: ['Comments'],
+    }),
   }),
 });
 
@@ -117,6 +139,9 @@ export const {
   useGetProfileQuery,
   useGetProfileCommentsQuery,
   usePostCommentMutation,
+  useDeleteProfileMutation,
+  useDeleteCommentMutation,
+  useUpdateServiceMutation,
 } = api;
 
 export default api;

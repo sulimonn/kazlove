@@ -6,40 +6,39 @@ import {
   Typography,
   Button,
   TextField,
+  Stack,
   List,
   ListItem,
   ListItemText,
-  Stack,
   CircularProgress,
+  IconButton,
 } from '@mui/material';
 import AccountCircleIcon from '@mui/icons-material/AccountCircle';
-
-import { Scrollbar, A11y, Navigation, Autoplay } from 'swiper/modules';
-import { Swiper, SwiperSlide } from 'swiper/react';
-import 'swiper/css';
-import 'swiper/css/scrollbar';
-import 'swiper/css/navigation';
+import DeleteIcon from '@mui/icons-material/Delete';
 
 import {
   useGetProfilePhotosQuery,
   useGetProfileQuery,
   useGetProfileCommentsQuery,
   usePostCommentMutation,
+  useDeleteCommentMutation,
 } from 'store/reducers/api';
 import { useAuth } from 'contexts/index';
+import Loader from 'components/Loader';
+import MySwiper from './MySwiper';
 
 const Profile = () => {
   const { id } = useParams();
   const { user } = useAuth();
-  const [showContact, setShowContact] = useState(false);
   const [photos, setPhotos] = useState([]);
   const [newComment, setNewComment] = useState({});
-  const [comments, setComments] = useState([]);
+  const [showContact, setShowContact] = useState(false);
 
-  const { data: girl = {} } = useGetProfileQuery(id);
-  const { data: photoData = [] } = useGetProfilePhotosQuery(girl?.id);
-  const { data: commentData = [] } = useGetProfileCommentsQuery(girl?.id);
+  const { data: girl = {}, isFetching } = useGetProfileQuery(id);
+  const { data: photoData = [], isFetching: photoIsFetching } = useGetProfilePhotosQuery(id);
+  const { data: comments = [] } = useGetProfileCommentsQuery(id);
   const [postComment, { isLoading }] = usePostCommentMutation();
+  const [deleteComment, { isLoading: isDeletingComment }] = useDeleteCommentMutation();
 
   // Handle setting profile photos
   useEffect(() => {
@@ -52,13 +51,6 @@ const Profile = () => {
       );
     }
   }, [photoData]);
-
-  // Handle setting comments
-  useEffect(() => {
-    if (commentData.length > 0) {
-      setComments(commentData);
-    }
-  }, [commentData]);
 
   // Handle comment submission
   const handleCommentSubmit = async () => {
@@ -74,137 +66,168 @@ const Profile = () => {
       const response = await postComment(commentPayload);
 
       if (response?.data) {
-        setComments((prevComments) => [...prevComments, response.data]);
         setNewComment({}); // Clear the comment input
       }
     }
   };
+  if (isFetching || photoIsFetching) {
+    return <Loader />;
+  }
 
   return (
-    <Container maxWidth="xl">
+    <Container>
+      <Stack
+        direction={{ xs: 'column', sm: 'row' }}
+        justifyContent="space-between"
+        mb={2}
+        spacing={2}
+        alignItems="center"
+      >
+        <Typography variant="h1" fontWeight="bold" color="text.primary">
+          {girl.name}, {girl.age} года, в городе {girl.city?.name}
+        </Typography>
+        <Stack justifyContent="center">
+          {showContact ? (
+            <Typography variant="h4" color="text.primary" onClick={() => setShowContact(false)}>
+              {girl.phone}
+            </Typography>
+          ) : (
+            <Button
+              onClick={() => setShowContact(true)}
+              color="secondary"
+              variant="contained"
+              startIcon={<AccountCircleIcon />}
+            >
+              Показать контакты
+            </Button>
+          )}
+        </Stack>
+      </Stack>
       <Box sx={{ display: 'flex', gap: 3, flexDirection: { xs: 'column', sm: 'row' } }}>
-        <Box
-          height={{ xs: 350, sm: 550 }}
-          width={{ xs: '100%', sm: 400 }}
-          bgcolor={'background.paper'}
-          borderRadius={2}
-          sx={{
-            '--swiper-theme-color': '#6e5ae2',
-          }}
-        >
-          <Swiper
-            modules={[Scrollbar, A11y, Navigation, Autoplay]}
-            navigation
-            slidesPerView={1}
-            spaceBetween={0}
-            scrollbar={{ draggable: true }}
-            style={{ height: '100%' }}
-            autoplay
-            delay={3000}
-          >
-            {photos?.map((image) => (
-              <SwiperSlide key={image.id}>
-                <Box height="100%">
-                  <img
-                    src={image?.upload}
-                    alt="girl"
-                    style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-                    loading="lazy"
-                  />
-                </Box>
-              </SwiperSlide>
-            ))}
-          </Swiper>
+        <Box height={{ xs: 450, sm: 700 }} width={{ xs: '100%', sm: 550 }}>
+          {photos.length > 0 && <MySwiper photos={photos} />}
         </Box>
         <Box flex={1}>
-          <Typography variant="h3" color="text.primary">
-            {girl.name} {girl.age}
-          </Typography>
-          <Typography variant="body1" color="text.secondary" fontWeight={'900'} my={1}>
-            {girl.address}, {girl.city?.name}
-          </Typography>
-          <Box display={'flex'} gap={1} width={'100%'}>
-            {showContact ? (
-              <Button
-                color="primary"
-                variant="contained"
-                onClick={() => {
-                  setShowContact(false);
-                }}
-              >
-                {girl.phone}
-              </Button>
-            ) : (
-              <Button
-                color="primary"
-                variant="contained"
-                onClick={() => {
-                  setShowContact(true);
-                }}
-                sx={{ width: '100%' }}
-              >
-                Показать контакты
-              </Button>
-            )}
-          </Box>
-          <Box display={'flex'} mt={2} gap={2} flexDirection={{ xs: 'column', md: 'row' }}>
-            <Stack flex={1}>
-              <Typography
-                variant="body1"
-                color="text.secondary"
-                whiteSpace={'pre-line'}
-                mb={4}
-                sx={{ flex: 1 }}
-              >
+          <Stack spacing={1.5} justifyContent="left">
+            <Stack direction="row" justifyContent="left" spacing={1}>
+              <Typography variant="h4" fontWeight="bold" color="text.disabled">
+                Город :
+              </Typography>
+              <Typography variant="h4" color="text.primary">
+                {girl.city?.name}
+              </Typography>
+            </Stack>
+            <Stack direction="row" justifyContent="left" spacing={1}>
+              <Typography variant="h4" fontWeight="bold" color="text.disabled">
+                Адрес :
+              </Typography>
+              <Typography variant="h4" color="text.primary">
+                {girl.address}
+              </Typography>
+            </Stack>
+            <Stack direction="row" justifyContent="left" spacing={1}>
+              <Typography variant="h4" color="text.primary">
+                {girl.profile_type?.name}
+              </Typography>
+            </Stack>
+
+            <Stack direction="row" justifyContent="left" spacing={1}>
+              <Typography variant="h4" fontWeight="bold" color="text.disabled">
+                Гендер :
+              </Typography>
+              <Typography variant="h4" color="text.primary">
+                {girl.gender?.name}
+              </Typography>
+            </Stack>
+            <Stack direction="row" justifyContent="left" spacing={1}>
+              <Typography variant="h4" color="text.primary">
+                <Typography variant="h4" fontWeight="bold" color="text.disabled" component="span">
+                  Возраст :
+                </Typography>
+                {girl.age}
+              </Typography>
+            </Stack>
+            <Stack direction="row" justifyContent="left" spacing={1}>
+              <Typography variant="h4" fontWeight="bold" color="text.disabled">
+                Грудь :
+              </Typography>
+              <Typography variant="h4" color="text.primary">
+                {girl.breast_size}
+              </Typography>
+            </Stack>
+            <Stack direction="row" justifyContent="left" spacing={1}>
+              <Typography variant="h4" fontWeight="bold" color="text.disabled">
+                Вес :
+              </Typography>
+              <Typography variant="h4" color="text.primary">
+                {girl.weight}
+              </Typography>
+            </Stack>
+            <Stack direction="row" justifyContent="left" spacing={1}>
+              <Typography variant="h4" fontWeight="bold" color="text.disabled">
+                Рост :
+              </Typography>
+              <Typography variant="h4" color="text.primary">
+                {girl.height}
+              </Typography>
+            </Stack>
+            <Stack direction="row" justifyContent="left" spacing={1}>
+              <Typography variant="h4" fontWeight="bold" color="text.disabled">
+                Национальность :
+              </Typography>
+              <Typography variant="h4" color="text.primary">
+                {girl.nationality}
+              </Typography>
+            </Stack>
+            <Stack direction="row" justifyContent="left" spacing={1}>
+              <Typography variant="h4" fontWeight="bold" color="text.disabled">
+                Цена за час :
+              </Typography>
+              <Typography variant="h4" color="text.primary">
+                {girl.price_hour}
+              </Typography>
+            </Stack>
+            <Stack direction="row" justifyContent="left" spacing={1}>
+              <Typography variant="h4" fontWeight="bold" color="text.disabled">
+                Цена за два часа :
+              </Typography>
+              <Typography variant="h4" color="text.primary">
+                {girl.price_two_hours}
+              </Typography>
+            </Stack>
+            <Stack direction="row" justifyContent="left" spacing={1}>
+              <Typography variant="h4" fontWeight="bold" color="text.disabled">
+                Цена за ночь :
+              </Typography>
+              <Typography variant="h4" color="text.primary">
+                {girl.price_night}
+              </Typography>
+            </Stack>
+            <Stack direction="row" justifyContent="left" spacing={1}>
+              <Typography variant="h4" color="text.primary" whiteSpace="pre-line">
+                <Typography variant="h4" fontWeight="bold" color="text.disabled" component="span">
+                  О себе :
+                </Typography>{' '}
                 {girl.additional_info}
               </Typography>
-
-              <Typography
-                variant="h4"
-                fontWeight={700}
-                color="text.secondary"
-                whiteSpace={'pre-line'}
-                mb={2}
-              >
-                Услуги
-              </Typography>
-              {girl.services?.map((service) => (
-                <Typography variant="body1" color="text.secondary" whiteSpace={'pre-line'} mb={2}>
-                  <i>{service?.name}</i>
-                </Typography>
-              ))}
             </Stack>
-            <Box bgcolor={'primary.lighter'} sx={{ flex: 1, borderRadius: 2, p: 2 }}>
-              <Typography variant="h5" fontWeight={'bold'}>
-                {girl.nationality}, {girl?.profile_type?.name}
-              </Typography>
-              <Typography variant="h5" fontWeight={'bold'}>
-                {girl.weight}кг, {girl.height}см
-              </Typography>
-              <Typography variant="h5" fontWeight={'bold'}>
-                {girl.breast_size} размер груди
-              </Typography>
-              <Typography
-                variant="h4"
-                fontWeight={700}
-                sx={{
-                  mt: 2,
-                  backgroundColor: 'white',
-                  px: 1,
-                  py: 0.5,
-                  borderRadius: 30,
-                  color: 'primary.main',
-                  width: 'fit-content',
-                }}
-              >
-                от {girl.price} ₽
-              </Typography>
-            </Box>
-          </Box>
+            {girl.services.length > 0 && (
+              <Stack direction="row" justifyContent="left" spacing={1}>
+                <Typography variant="h4" fontWeight="bold" color="text.disabled" component="span">
+                  Услуги :
+                </Typography>
+                {girl.services.map((service) => (
+                  <Typography variant="h4" color="text.primary" whiteSpace="pre-line">
+                    {service.name} за {service.price}
+                  </Typography>
+                ))}
+              </Stack>
+            )}
+          </Stack>
         </Box>
       </Box>
       {/* Comment Section */}
-      <Box mt={6} pl={{ xs: 0, sm: '400px' }}>
+      <Box mt={6}>
         <Typography variant="h3" gutterBottom>
           Отзывы
         </Typography>
@@ -221,6 +244,15 @@ const Profile = () => {
                     <Typography variant="caption" color="grey.500">
                       {new Date(comment.date).toLocaleDateString('ru-RU')}
                     </Typography>
+                    {(girl?.user_id === user?.user_id || user?.is_admin === 1) && (
+                      <IconButton
+                        onClick={async () => await deleteComment(comment.id)}
+                        size="small"
+                        disabled={isDeletingComment}
+                      >
+                        {<DeleteIcon sx={{ color: 'grey.300' }} fontSize="small" />}
+                      </IconButton>
+                    )}
                   </Box>
                 }
                 secondary={
@@ -234,55 +266,57 @@ const Profile = () => {
         </List>
 
         {/* Comment Input */}
-        <Box mt={2}>
-          <TextField
-            value={newComment.user_name || ''}
-            fullWidth
-            label="Ваше имя"
-            variant="outlined"
-            onChange={(e) => setNewComment((prev) => ({ ...prev, user_name: e.target.value }))}
-            color="secondary"
-            sx={{
-              '& .MuiOutlinedInput-root': {
-                '&:hover fieldset': {
-                  borderColor: 'secondary.main',
+        {user?.user_id !== girl?.user_id && (
+          <Box mt={2}>
+            <TextField
+              value={newComment.user_name || ''}
+              fullWidth
+              label="Ваше имя"
+              variant="outlined"
+              onChange={(e) => setNewComment((prev) => ({ ...prev, user_name: e.target.value }))}
+              color="secondary"
+              sx={{
+                '& .MuiOutlinedInput-root': {
+                  '&:hover fieldset': {
+                    borderColor: 'secondary.main',
+                  },
                 },
-              },
-              mb: 1,
-            }}
-          />
-          <TextField
-            fullWidth
-            label="Комментарий"
-            variant="outlined"
-            value={newComment?.text || ''}
-            onChange={(e) => setNewComment((prev) => ({ ...prev, text: e.target.value }))}
-            multiline
-            rows={3}
-            color="secondary"
-            sx={{
-              '& .MuiOutlinedInput-root': {
-                '&:hover fieldset': {
-                  borderColor: 'secondary.main',
+                mb: 1,
+              }}
+            />
+            <TextField
+              fullWidth
+              label="Комментарий"
+              variant="outlined"
+              value={newComment?.text || ''}
+              onChange={(e) => setNewComment((prev) => ({ ...prev, text: e.target.value }))}
+              multiline
+              rows={3}
+              color="secondary"
+              sx={{
+                '& .MuiOutlinedInput-root': {
+                  '&:hover fieldset': {
+                    borderColor: 'secondary.main',
+                  },
                 },
-              },
-            }}
-          />
-          {!user?.user_id && (
-            <Typography variant="subtitle2" color="error">
-              Войдите или зарегистрируйтесь, чтобы оставлять комментарии
-            </Typography>
-          )}
-          <Button
-            variant="contained"
-            color="secondary"
-            onClick={handleCommentSubmit}
-            sx={{ mt: 2 }}
-            disabled={!newComment?.text || !newComment?.user_name || !user?.user_id || isLoading}
-          >
-            {isLoading ? <CircularProgress color="inherit" size={20} /> : 'Отправить комментарий'}
-          </Button>
-        </Box>
+              }}
+            />
+            {!user?.user_id && (
+              <Typography variant="subtitle2" color="error">
+                Войдите или зарегистрируйтесь, чтобы оставлять комментарии
+              </Typography>
+            )}
+            <Button
+              variant="contained"
+              color="secondary"
+              onClick={handleCommentSubmit}
+              sx={{ mt: 2 }}
+              disabled={!newComment?.text || !newComment?.user_name || !user?.user_id || isLoading}
+            >
+              {isLoading ? <CircularProgress color="inherit" size={20} /> : 'Отправить комментарий'}
+            </Button>
+          </Box>
+        )}
       </Box>
     </Container>
   );

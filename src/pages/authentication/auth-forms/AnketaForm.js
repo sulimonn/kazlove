@@ -11,6 +11,7 @@ import {
   MenuItem,
   TextField,
 } from '@mui/material';
+import CloseIcon from '@mui/icons-material/Close';
 
 // third party
 import * as Yup from 'yup';
@@ -30,10 +31,10 @@ import {
   usePostPhotosMutation,
   usePostProfileMutation,
 } from 'store/reducers/api';
-import Autocomplete from './Autocomplete';
 import { useAuth } from 'contexts/index';
 import Pictures from './Pictures';
 import Loader from 'components/Loader';
+import Services from './Services';
 
 // assets
 
@@ -45,6 +46,7 @@ const AnketaForm = ({ profile = null, photos: initialPhotos = [], ...others }) =
   const [postProfile, { isLoading: isPosting }] = usePostProfileMutation();
   const [editProfile, { isLoading: isEditing }] = useEditProfileMutation();
   const [addService, { isLoading: isAdding }] = useAddServiceMutation();
+  const [updateService, { isLoading: isUpdating }] = useAddServiceMutation();
   const [deleteService, { isLoading: isDeleting }] = useDeleteServiceMutation();
   const [postPhotos, { isLoading: isPostingPhotos }] = usePostPhotosMutation();
   const [deletePhoto, { isLoading: isDeletingPhoto }] = useDeleteProfilePhotoMutation();
@@ -57,8 +59,8 @@ const AnketaForm = ({ profile = null, photos: initialPhotos = [], ...others }) =
   const [photos, setPhotos] = React.useState(initialPhotos);
 
   React.useEffect(() => {
-    setPhotos(initialPhotos);
-  }, [initialPhotos]);
+    if (initialPhotos.length > 0 && others?.isFetching) setPhotos(initialPhotos);
+  }, [initialPhotos, others?.isFetching]);
 
   if (
     isPosting ||
@@ -67,6 +69,7 @@ const AnketaForm = ({ profile = null, photos: initialPhotos = [], ...others }) =
     isDeleting ||
     isPostingPhotos ||
     isDeletingPhoto ||
+    isUpdating ||
     others?.isFetching
   ) {
     return <Loader />;
@@ -88,6 +91,9 @@ const AnketaForm = ({ profile = null, photos: initialPhotos = [], ...others }) =
           address: '',
           services: [],
           price: '',
+          price_hour: '',
+          price_two_hours: '',
+          price_night: '',
           additional_info: '',
           ...profile,
           city: profile?.city?.id || '',
@@ -97,6 +103,16 @@ const AnketaForm = ({ profile = null, photos: initialPhotos = [], ...others }) =
           submit: null,
         }}
         validationSchema={Yup.object().shape({
+          services: Yup.array()
+            .of(
+              Yup.object().shape({
+                price: Yup.number()
+                  .typeError('Цена должна быть числом')
+                  .required('Цена обязательна'),
+              })
+            )
+            .min(1, 'Услуги обязательны')
+            .required('Услуги обязательны'),
           name: Yup.string().max(255).required('Имя обязательно'),
           phone: Yup.string().max(255).required('Телефон обязателен'),
           profile_type: Yup.string().max(255).required('Тип обязателен'),
@@ -147,6 +163,18 @@ const AnketaForm = ({ profile = null, photos: initialPhotos = [], ...others }) =
                 const allServices = profile?.services || [];
                 const selectedServices = services || [];
 
+                const forUpdate = selectedServices
+                  .filter((item) =>
+                    allServices.find(
+                      (service) => service.id === item.id && service.price !== item.price
+                    )
+                  )
+                  .map((item) => ({
+                    service_id: item.id,
+                    profile_id: profile_id,
+                    price: item.price,
+                  }));
+
                 // Assuming services are objects with an `id` property
                 const forAdd = selectedServices
                   .filter(
@@ -155,11 +183,23 @@ const AnketaForm = ({ profile = null, photos: initialPhotos = [], ...others }) =
                         return service.id === item.id;
                       })
                   )
-                  .map((item) => ({ service_id: item.id, profile_id: profile_id }));
+                  .map((item) => ({
+                    service_id: item.id,
+                    profile_id: profile_id,
+                    price: item.price,
+                  }));
 
                 const forDelete = allServices
                   .filter((service) => !selectedServices.find((item) => item.id === service.id))
                   .map((service) => ({ service_id: service.id, profile_id: profile_id }));
+
+                if (forUpdate.length > 0) {
+                  const response = await updateService(forUpdate);
+                  if (response?.error) {
+                    setErrors({ submit: 'Что то пошло не так при обновлении услуг' });
+                  }
+                }
+
                 if (forAdd.length > 0) {
                   const response = await addService(forAdd);
                   if (response?.error) {
@@ -496,9 +536,9 @@ const AnketaForm = ({ profile = null, photos: initialPhotos = [], ...others }) =
                   </Grid>
                 </Grid>
               </Grid>
-              <Grid item xs={12} md={3}>
+              <Grid item xs={6} md={2}>
                 <Stack spacing={1}>
-                  <InputLabel htmlFor="price-form">Цена за услуги*</InputLabel>
+                  <InputLabel htmlFor="price-form">Цена от*</InputLabel>
                   <OutlinedInput
                     id="price-form"
                     type="number"
@@ -518,7 +558,73 @@ const AnketaForm = ({ profile = null, photos: initialPhotos = [], ...others }) =
                   )}
                 </Stack>
               </Grid>
-              <Grid item xs={12} md={9}>
+              <Grid item xs={6} md={2}>
+                <Stack spacing={1}>
+                  <InputLabel htmlFor="price_hour-form">Цена за час*</InputLabel>
+                  <OutlinedInput
+                    id="price_hour-form"
+                    type="number"
+                    min="0"
+                    value={values.price_hour || ''}
+                    name="price_hour"
+                    onBlur={handleBlur}
+                    onChange={handleChange}
+                    placeholder="3000+"
+                    fullWidth
+                    error={Boolean(touched.price_hour && errors.price_hour)}
+                  />
+                  {touched.price_hour && errors.price_hour && (
+                    <FormHelperText error id="helper-text-price_hour-form">
+                      {errors.price_hour}
+                    </FormHelperText>
+                  )}
+                </Stack>
+              </Grid>
+              <Grid item xs={6} md={2}>
+                <Stack spacing={1}>
+                  <InputLabel htmlFor="price_two_hours-form">Цена за два часа*</InputLabel>
+                  <OutlinedInput
+                    id="price_two_hours-form"
+                    type="number"
+                    min="0"
+                    value={values.price_two_hours || ''}
+                    name="price_two_hours"
+                    onBlur={handleBlur}
+                    onChange={handleChange}
+                    placeholder="3000+"
+                    fullWidth
+                    error={Boolean(touched.price_two_hours && errors.price_two_hours)}
+                  />
+                  {touched.price_two_hours && errors.price_two_hours && (
+                    <FormHelperText error id="helper-text-price_two_hours-form">
+                      {errors.price_two_hours}
+                    </FormHelperText>
+                  )}
+                </Stack>
+              </Grid>
+              <Grid item xs={6} md={2}>
+                <Stack spacing={1}>
+                  <InputLabel htmlFor="price_night-form">Цена за ночь*</InputLabel>
+                  <OutlinedInput
+                    id="price_night-form"
+                    type="number"
+                    min="0"
+                    value={values.price_night || ''}
+                    name="price_night"
+                    onBlur={handleBlur}
+                    onChange={handleChange}
+                    placeholder="3000+"
+                    fullWidth
+                    error={Boolean(touched.price_night && errors.price_night)}
+                  />
+                  {touched.price_night && errors.price_night && (
+                    <FormHelperText error id="helper-text-price_night-form">
+                      {errors.price_night}
+                    </FormHelperText>
+                  )}
+                </Stack>
+              </Grid>
+              <Grid item xs={12} md={4}>
                 <Stack spacing={1}>
                   <InputLabel htmlFor="address-form">Адрес*</InputLabel>
                   <OutlinedInput
@@ -542,11 +648,41 @@ const AnketaForm = ({ profile = null, photos: initialPhotos = [], ...others }) =
               <Grid item xs={12}>
                 <Stack spacing={1}>
                   <InputLabel>Услуги*</InputLabel>
-
-                  <Autocomplete
+                  {values?.services?.length > 0 &&
+                    values?.services?.map((service) => (
+                      <Stack key={service?.id} direction="row" alignItems="center">
+                        <TextField value={service?.name} disabled fullWidth />
+                        <TextField
+                          value={service?.price || ''}
+                          onChange={(event) => {
+                            const newServices = values.services.map((s) => {
+                              if (s.id === service.id) {
+                                return { ...s, price: event.target.value };
+                              }
+                              return s;
+                            });
+                            setFieldValue('services', newServices);
+                          }}
+                          name="price"
+                          placeholder="Цена за услугу"
+                          required
+                          type="number"
+                          error={Boolean(touched.services && errors.services)}
+                          autoFocus
+                        />
+                        <CloseIcon
+                          sx={{ cursor: 'pointer', ml: 1 }}
+                          onClick={() => {
+                            const newServices = values.services.filter((s) => s.id !== service.id);
+                            setFieldValue('services', newServices);
+                          }}
+                        />
+                      </Stack>
+                    ))}
+                  <Services
                     value={values?.services}
                     values={servicesData || []}
-                    setValues={(values) => setFieldValue('services', values)}
+                    setValues={(newServices) => setFieldValue('services', newServices)}
                   />
                 </Stack>
               </Grid>

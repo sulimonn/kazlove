@@ -54,24 +54,6 @@ export const actionsSlice = createSlice({
         step: 500,
         selected: [],
       },
-      {
-        id: 'nationality',
-        name: 'Нация',
-        title: 'По нации',
-        value: ['Русский', 'Марсианка'],
-        type: 'button',
-        options: [
-          {
-            id: 'nationality-russian',
-            name: 'Русский',
-          },
-          {
-            id: 'nationality-marsian',
-            name: 'Марсианка',
-          },
-        ],
-        selected: [],
-      },
     ],
     sort: [
       {

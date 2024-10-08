@@ -17,7 +17,7 @@ export default function ThemeCustomization({ children }) {
   const theme = Palette('light', 'default');
 
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  const themeTypography = Typography(`'Mulish', sans-serif`);
+  const themeTypography = Typography(theme);
   const themeCustomShadows = useMemo(() => CustomShadows(theme), [theme]);
 
   const themeOptions = useMemo(

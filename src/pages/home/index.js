@@ -36,13 +36,14 @@ const Home = () => {
   React.useEffect(() => {
     if (data.length > 0) {
       setGirls(data);
-      console.log(data);
     }
   }, [data]);
 
   useEffect(() => {
     if (data.length > 0) {
-      let filteredGirls = data;
+      let filteredGirls = [...data]
+        .sort((a, b) => b.promotion_level - a.promotion_level)
+        .filter((girl) => girl.approved === 1 && girl.checked === 1);
 
       if (typeof city === 'number' && city > 0) {
         filteredGirls = filteredGirls.filter((girl) => girl.city?.id === city);

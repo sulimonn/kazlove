@@ -5,7 +5,6 @@ import { useAuth } from 'contexts';
 // material-ui
 import {
   Button,
-  Divider,
   FormHelperText,
   Grid,
   Link,
@@ -14,7 +13,6 @@ import {
   InputLabel,
   OutlinedInput,
   Stack,
-  Typography,
 } from '@mui/material';
 
 // third party
@@ -22,7 +20,6 @@ import * as Yup from 'yup';
 import { Formik } from 'formik';
 
 // project import
-import FirebaseSocial from './FirebaseSocial';
 import AnimateButton from 'components/@extended/AnimateButton';
 
 // assets
@@ -176,14 +173,6 @@ const AuthLogin = () => {
                     Войти
                   </Button>
                 </AnimateButton>
-              </Grid>
-              <Grid item xs={12}>
-                <Divider>
-                  <Typography variant="caption">Или войти с помощью</Typography>
-                </Divider>
-              </Grid>
-              <Grid item xs={12}>
-                <FirebaseSocial />
               </Grid>
             </Grid>
           </form>

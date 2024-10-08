@@ -78,10 +78,19 @@ const DrawerHeader = ({ open }) => {
             <Button
               component={Link}
               to={!!profile ? '/profile/me' : '/profile/add'}
-              color="primary"
+              color={
+                profile?.approved === 1 && profile?.checked === 1 ? 'primary' : 'error' || 'primary'
+              }
               variant="contained"
+              style={{ marginLeft: '10px', textTransform: 'none' }}
             >
-              {!!profile ? 'Моя анкета' : 'Добавить анкету'}
+              {profile?.id
+                ? profile?.approved === 1 && profile?.checked === 1
+                  ? 'Моя анкета'
+                  : profile?.checked === 0 && profile?.approved === 0
+                    ? 'Рассматривается'
+                    : 'Анкета отклонена'
+                : 'Добавить анкету'}
             </Button>
           </Box>
         </Box>

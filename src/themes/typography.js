@@ -1,8 +1,8 @@
 // ==============================|| DEFAULT THEME - TYPOGRAPHY  ||============================== //
 
-const Typography = (fontFamily) => ({
+const Typography = (theme) => ({
   htmlFontSize: 16,
-  fontFamily,
+  fontFamily: `'Mulish', sans-serif`,
   fontWeightLight: 300,
   fontWeightRegular: 400,
   fontWeightMedium: 500,
@@ -11,6 +11,12 @@ const Typography = (fontFamily) => ({
     fontWeight: 600,
     fontSize: '2.375rem',
     lineHeight: 1.21,
+    [theme.breakpoints.down('md')]: {
+      fontSize: '2rem',
+    },
+    [theme.breakpoints.down('sm')]: {
+      fontSize: '1.75rem',
+    },
   },
   h2: {
     fontWeight: 600,
