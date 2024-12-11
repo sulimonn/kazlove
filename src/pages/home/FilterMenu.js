@@ -5,14 +5,13 @@ import { useSelector, useDispatch } from 'react-redux';
 import { Menu, Box, Typography } from '@mui/material';
 import FilterItem from './FilterItem';
 import FilterSlider from './FilterSlider';
-import { useFetchGendersQuery, useFetchServicesQuery } from 'store/reducers/api';
+import { useFetchServicesQuery } from 'store/reducers/api';
 import Autocomplete from 'pages/authentication/auth-forms/Autocomplete';
 import { setServices } from 'store/reducers/action';
 import Loader from 'components/Loader';
 
 const FilterMenu = ({ anchorEl, open, handleClose }) => {
-  const { gender, services: defaultServices } = useSelector((state) => state.action);
-  const { data: genders = [], isFetching } = useFetchGendersQuery();
+  const { services: defaultServices } = useSelector((state) => state.action);
   const { filter: filters } = useSelector((state) => state.catalog);
   const { data: services = [], isFetching: isFetchingServices } = useFetchServicesQuery();
   const dispatch = useDispatch();
@@ -21,7 +20,7 @@ const FilterMenu = ({ anchorEl, open, handleClose }) => {
     dispatch(setServices(event));
   };
 
-  if (isFetching || isFetchingServices) {
+  if (isFetchingServices) {
     return <Loader />;
   }
 
@@ -34,35 +33,11 @@ const FilterMenu = ({ anchorEl, open, handleClose }) => {
       MenuListProps={{
         'aria-labelledby': 'sort-button',
       }}
-      sx={{ '& .MuiList-root': { backgroundColor: '#121212' } }}
+      sx={{
+        boxShadow: (theme) => theme.customShadows.z1,
+        '& .MuiList-root': { backgroundColor: '#121212', minWidth: { xs: '350px', sm: '400px' } },
+      }}
     >
-      {genders.length > 0 && (
-        <Box
-          sx={{
-            maxWidth: '400px',
-            px: 4,
-            py: 1,
-            display: 'flex',
-            justifyContent: 'space-between',
-            flexDirection: 'column',
-            gap: 2,
-          }}
-        >
-          <Typography variant="body1" sx={{ width: 'fit-content' }}>
-            Пол
-          </Typography>
-          <Box display="flex" flexWrap="wrap" gap={1}>
-            {genders?.map((option) => (
-              <FilterItem
-                key={option.id}
-                option={option}
-                filter={'gender'}
-                checked={gender.map((item) => parseInt(item))?.includes(option.id)}
-              />
-            ))}
-          </Box>
-        </Box>
-      )}
       {filters.map((filter) => (
         <Box
           key={filter.id}

@@ -35,7 +35,11 @@ const Profile = () => {
   const [showContact, setShowContact] = useState(false);
 
   const { data: girl = {}, isFetching } = useGetProfileQuery(id);
-  const { data: photoData = [], isFetching: photoIsFetching } = useGetProfilePhotosQuery(id);
+  const {
+    data: photoData = [],
+    isFetching: photoIsFetching,
+    refetch,
+  } = useGetProfilePhotosQuery(id);
   const { data: comments = [] } = useGetProfileCommentsQuery(id);
   const [postComment, { isLoading }] = usePostCommentMutation();
   const [deleteComment, { isLoading: isDeletingComment }] = useDeleteCommentMutation();
@@ -105,7 +109,7 @@ const Profile = () => {
       </Stack>
       <Box sx={{ display: 'flex', gap: 3, flexDirection: { xs: 'column', sm: 'row' } }}>
         <Box height={{ xs: 450, sm: 700 }} width={{ xs: '100%', sm: 550 }}>
-          {photos.length > 0 && <MySwiper photos={photos} />}
+          {photos.length > 0 && <MySwiper photos={photos} refetch={refetch} />}
         </Box>
         <Box flex={1}>
           <Stack spacing={1.5} justifyContent="left">

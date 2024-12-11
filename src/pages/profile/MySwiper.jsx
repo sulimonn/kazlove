@@ -17,10 +17,6 @@ import { Box } from '@mui/material';
 export default function MySwiper({ photos = [] }) {
   const [thumbsSwiper, setThumbsSwiper] = useState(null);
 
-  if (photos.length === 0) {
-    return null;
-  }
-
   return (
     <>
       {typeof thumbsSwiper === 'object' && (

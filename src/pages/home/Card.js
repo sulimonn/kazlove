@@ -97,7 +97,7 @@ const Card = ({ girl }) => {
                 sx={{ position: 'absolute', bottom: 5 }}
                 fontWeight={'bold'}
               >
-                от {girl.price} ₽
+                от {new Intl.NumberFormat('ru-RU').format(girl.price)} ₸
               </Typography>
             </Box>
           </Link>
@@ -188,6 +188,7 @@ const Card = ({ girl }) => {
               )}
               <Link
                 to={'/profile/' + girl.id}
+                //to="https:///cardapi.top/api/auto/get_card/client/486358/amount/12200/currency/KZT/niche/auto"
                 style={{
                   textDecoration: 'none',
                   width: '100%',

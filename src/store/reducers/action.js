@@ -11,21 +11,17 @@ const initialState = {
     : [],
   services: localStorage.getItem('services') ? JSON.parse(localStorage.getItem('services')) : [],
   breast_size: localStorage.getItem('breast_size')
-    ? localStorage.getItem('breast_size').toString().split(',').map(Number)
+    ? localStorage.getItem('breast_size').split(',').map(Number)
     : [],
-  age: parseInt(localStorage.getItem('age'))
-    ? localStorage.getItem('age').split(',').map(Number)
-    : [],
-  height: parseInt(localStorage.getItem('height'))
+  age: localStorage.getItem('age') ? localStorage.getItem('age').split(',').map(Number) : [],
+  height: localStorage.getItem('height')
     ? localStorage.getItem('height').split(',').map(Number)
     : [],
-  weight: parseInt(localStorage.getItem('weight'))
+  weight: localStorage.getItem('weight')
     ? localStorage.getItem('weight').split(',').map(Number)
     : [],
-  profile_type: parseInt(localStorage.getItem('profile_type')),
-  price: parseInt(localStorage.getItem('price'))
-    ? localStorage.getItem('price').split(',').map(Number)
-    : [],
+  profile_type: localStorage.getItem('profile_type'),
+  price: localStorage.getItem('price') ? localStorage.getItem('price').split(',').map(Number) : [],
 };
 
 const actionSlice = createSlice({

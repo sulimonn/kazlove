@@ -1,8 +1,11 @@
 import React, { useEffect } from 'react';
+import { useDispatch } from 'react-redux';
 
 // material-ui
-import { Container, Grid, Stack, Button, Typography } from '@mui/material';
+import { Container, Grid, Stack, Button, Typography, useMediaQuery } from '@mui/material';
+import { useTheme } from '@mui/material/styles';
 import { useSelector } from 'react-redux';
+import LocationOnIcon from '@mui/icons-material/LocationOn';
 
 // third-party
 import { FilterOutlined } from '@ant-design/icons';
@@ -12,20 +15,32 @@ import { Sort } from '@mui/icons-material';
 import Card from './Card';
 import SortMenu from './SortMenu';
 import FilterMenu from './FilterMenu';
-import { useFetchProfilesQuery } from 'store/reducers/api';
+import { useFetchCitiesQuery, useFetchProfilesQuery } from 'store/reducers/api';
+import { openModal } from 'store/reducers/menu';
+import Loader from 'components/Loader';
+import { shuffle } from 'utils/createPreview';
+import Category from './Category';
 
 // ==============================|| DASHBOARD - DEFAULT ||============================== //
 
 const Home = () => {
+  const theme = useTheme();
+  const matches = useMediaQuery(theme.breakpoints.down('sm'));
   const { data = [] } = useFetchProfilesQuery();
+  const { data: cities = [] } = useFetchCitiesQuery();
+
   const [sortAnchorEl, setSortAnchorEl] = React.useState(null);
   const [filterAnchorEl, setfilterAnchorEl] = React.useState(null);
+  const [categAnchEl, setCategAnchEl] = React.useState(null);
   const [girls, setGirls] = React.useState(data);
   const sortOpen = Boolean(sortAnchorEl);
   const filterOpen = Boolean(filterAnchorEl);
-  const { city, gender, weight, height, age, price, breast_size, services } = useSelector(
-    (state) => state.action
-  );
+  const categOpen = Boolean(categAnchEl);
+  const { city, gender, weight, height, age, price, breast_size, services, sortOption } =
+    useSelector((state) => state.action);
+  const [loading, setLoading] = React.useState(true);
+
+  const dispatch = useDispatch();
 
   const handleClick = (event) => {
     setSortAnchorEl(event.currentTarget);
@@ -39,82 +54,229 @@ const Home = () => {
     }
   }, [data]);
 
+  const handleOpen = () => {
+    dispatch(openModal({ modalOpen: true }));
+  };
+  useEffect(() => {
+    if (city < 0 || typeof city !== 'number') {
+      dispatch(openModal({ modalOpen: true }));
+    }
+  }, [dispatch, city]);
+
   useEffect(() => {
     if (data.length > 0) {
-      let filteredGirls = [...data]
-        .sort((a, b) => b.promotion_level - a.promotion_level)
-        .filter((girl) => girl.approved === 1 && girl.checked === 1);
+      // Filter girls with promotion_level S based on conditions
+      const filteredGirls = data.filter((girl) => girl.approved === 1 && girl.checked === 1);
+      const promotionTop = shuffle(
+        filteredGirls.filter((girl) => {
+          console.log(girl.name, girl.promotion_level, 2, girl.city?.id, city, city <= 0);
+
+          return girl.promotion_level === 2 && (girl.city?.id === city || city <= 0);
+        })
+      );
+
+      const promotionVip = shuffle(
+        filteredGirls.filter(
+          (girl) => girl.promotion_level === 1 && (girl.city?.id === city || city <= 0)
+        )
+      );
+      let promotionStn = filteredGirls.filter((girl) => girl.promotion_level === 0);
 
       if (typeof city === 'number' && city > 0) {
-        filteredGirls = filteredGirls.filter((girl) => girl.city?.id === city);
+        promotionStn = promotionStn.filter((girl) => girl.city?.id === city);
       }
 
       if (gender.length > 0) {
-        filteredGirls = filteredGirls.filter((girl) =>
+        promotionStn = promotionStn.filter((girl) =>
           gender.map((g) => parseInt(g, 10)).includes(girl.gender?.id)
         );
       }
+
       if (services.length > 0) {
-        console.log(services);
-        filteredGirls = filteredGirls.filter((girl) =>
-          services
-            .map((s) => parseInt(s.id))
-            .map((s) => s)
-            .includes(girl.profile_type?.id)
+        promotionStn = promotionStn.filter((girl) =>
+          services.map((s) => parseInt(s.id)).includes(girl.profile_type?.id)
         );
       }
 
       if (weight.length > 0) {
-        filteredGirls = filteredGirls.filter(
+        promotionStn = promotionStn.filter(
           (girl) => girl.weight >= weight[0] && girl.weight <= weight[1]
         );
       }
 
       if (height.length > 0) {
-        filteredGirls = filteredGirls.filter(
+        promotionStn = promotionStn.filter(
           (girl) => girl.height >= height[0] && girl.height <= height[1]
         );
       }
 
       if (age.length > 0) {
-        filteredGirls = filteredGirls.filter((girl) => girl.age >= age[0] && girl.age <= age[1]);
+        promotionStn = promotionStn.filter((girl) => girl.age >= age[0] && girl.age <= age[1]);
       }
 
       if (price.length > 0) {
-        filteredGirls = filteredGirls.filter(
+        promotionStn = promotionStn.filter(
           (girl) => girl.price >= price[0] && girl.price <= price[1]
         );
       }
 
       if (breast_size.length > 0) {
-        filteredGirls = filteredGirls.filter(
+        promotionStn = promotionStn.filter(
           (girl) => girl.breast_size >= breast_size[0] && girl.breast_size <= breast_size[1]
         );
       }
 
-      setGirls(filteredGirls);
+      // Shuffle filtered S
+      promotionStn = !sortOption?.id
+        ? shuffle(promotionStn)
+        : sortOption?.option === 'asc'
+          ? [...promotionStn].sort((a, b) => {
+              console.log(a[sortOption.id], b[sortOption.id]);
+
+              if (a[sortOption.id] > b[sortOption.id]) {
+                return -1;
+              }
+
+              return 1;
+            })
+          : [...promotionStn].sort((a, b) => {
+              if (a[sortOption.id] > b[sortOption.id]) {
+                return 1;
+              }
+
+              return -1;
+            });
+      const remainingTop = shuffle(
+        filteredGirls.filter((girl) => girl.promotion_level === 2 && girl.city?.id !== city)
+      );
+      const remainingVip = shuffle(
+        filteredGirls.filter((girl) => girl.promotion_level === 1 && girl.city?.id !== city)
+      );
+      let remainingGirls = filteredGirls.filter(
+        (girl) =>
+          !promotionStn.includes(girl) &&
+          !remainingTop.includes(girl) &&
+          !remainingVip.includes(girl) &&
+          !promotionTop.includes(girl) &&
+          !promotionVip.includes(girl)
+      );
+
+      remainingGirls = !sortOption?.id
+        ? shuffle(remainingGirls)
+        : sortOption?.option === 'asc'
+          ? [...remainingGirls].sort((a, b) => {
+              if (a[sortOption.id] > b[sortOption.id]) {
+                return -1;
+              }
+              if (a[sortOption.id] < b[sortOption.id]) {
+                return 1;
+              }
+              return 0;
+            })
+          : [...remainingGirls].sort((a, b) => {
+              if (a[sortOption.id] > b[sortOption.id]) {
+                return 1;
+              }
+              if (a[sortOption.id] < b[sortOption.id]) {
+                return -1;
+              }
+              return 0;
+            });
+
+      // Combine all arrays in the desired order
+      const finalGirls = [
+        ...promotionTop,
+        ...promotionVip,
+        ...promotionStn,
+        ...remainingTop,
+        ...remainingVip,
+        ...remainingGirls,
+      ];
+      console.log(finalGirls);
+
+      //const finalGirls = [...promotionStn, ...remainingGirls];
+
+      // Update state
+      setGirls(finalGirls);
+      setLoading(false);
     }
-  }, [city, gender, data, weight, height, age, price, breast_size, services]);
+  }, [data, city, gender, weight, height, age, price, breast_size, services, sortOption]);
+
+  if (loading) {
+    return <Loader />;
+  }
 
   return (
     <>
       <Container maxWidth="xl">
-        <Stack direction="row" justifyContent="space-between" alignItems="baseline" mb={5}>
+        <Stack
+          direction="row"
+          justifyContent="space-between"
+          alignItems="baseline"
+          mb={1}
+          sx={{ display: { xs: 'flex', sm: 'none' } }}
+        >
           <Button
             color="secondary"
             startIcon={<FilterOutlined />}
             sx={{ px: 2, py: 1 }}
-            id="filter-button"
-            aria-controls={filterOpen ? 'filter-menu' : undefined}
+            id="category-button"
+            aria-controls={categOpen ? 'category-menu' : undefined}
             aria-haspopup="true"
-            aria-expanded={filterOpen ? 'true' : undefined}
-            onClick={(event) => setfilterAnchorEl(event.currentTarget)}
+            aria-expanded={categOpen ? 'true' : undefined}
+            onClick={(event) => setCategAnchEl(event.currentTarget)}
           >
-            <Typography variant="body1">Предпочтения</Typography>
+            <Typography variant="body1">Категории</Typography>
           </Button>
           <Button
+            color="primary"
+            startIcon={<LocationOnIcon />}
+            onClick={handleOpen}
+            sx={{ textTransform: 'none', whiteSpace: 'nowrap' }}
+          >
+            {city
+              ? [...cities, { id: -1, name: 'Все города' }]?.find((item) => item.id === city)?.name
+              : 'Выбрать город'}
+          </Button>
+        </Stack>
+        <Stack direction="row" justifyContent="space-between" alignItems="baseline" mb={3}>
+          <Stack direction="row" spacing={1} alignItems="center">
+            {!matches && (
+              <Button
+                color="secondary"
+                startIcon={<FilterOutlined />}
+                sx={{ px: 2, py: 1, display: { xs: 'none', sm: 'flex' } }}
+                id="category-button"
+                aria-controls={categOpen ? 'category-menu' : undefined}
+                aria-haspopup="true"
+                aria-expanded={categOpen ? 'true' : undefined}
+                onClick={(event) => setCategAnchEl(event.currentTarget)}
+              >
+                <Typography variant="body1">Категории</Typography>
+              </Button>
+            )}
+            <Button
+              color="secondary"
+              startIcon={<FilterOutlined />}
+              sx={{ px: 2, py: 1 }}
+              id="filter-button"
+              aria-controls={filterOpen ? 'filter-menu' : undefined}
+              aria-haspopup="true"
+              aria-expanded={filterOpen ? 'true' : undefined}
+              onClick={(event) => setfilterAnchorEl(event.currentTarget)}
+            >
+              <Typography variant="body1">Предпочтения</Typography>
+            </Button>
+          </Stack>
+          <Button
             color="secondary"
-            startIcon={<Sort />}
+            startIcon={
+              <Sort
+                sx={{
+                  transform: sortOption?.option === 'asc' ? 'rotateX(180deg)' : 'rotate(0deg)',
+                }}
+              />
+            }
             sx={{ px: 2, py: 1 }}
             id="sort-button"
             aria-controls={sortOpen ? 'sort-menu' : undefined}
@@ -122,7 +284,9 @@ const Home = () => {
             aria-expanded={sortOpen ? 'true' : undefined}
             onClick={handleClick}
           >
-            <Typography variant="body1">Сортировать</Typography>
+            <Typography variant="body1">
+              Сортировать {sortOption?.selected ? ': ' + sortOption.selected : ''}
+            </Typography>
           </Button>
         </Stack>
         <Grid container spacing={3} sx={{ mt: 2 }}>
@@ -133,13 +297,8 @@ const Home = () => {
           ))}
         </Grid>
       </Container>
-      <SortMenu
-        anchorEl={sortAnchorEl}
-        open={sortOpen}
-        handleClose={handleClose}
-        girls={girls}
-        setGirls={setGirls}
-      />
+      <SortMenu anchorEl={sortAnchorEl} open={sortOpen} handleClose={handleClose} />
+      <Category anchorEl={categAnchEl} open={categOpen} handleClose={() => setCategAnchEl(null)} />
       <FilterMenu
         anchorEl={filterAnchorEl}
         open={filterOpen}

@@ -35,6 +35,7 @@ import { useAuth } from 'contexts/index';
 import Pictures from './Pictures';
 import Loader from 'components/Loader';
 import Services from './Services';
+import { useEditUserMutation } from 'store/reducers/users';
 
 // assets
 
@@ -46,6 +47,7 @@ const AnketaForm = ({ profile = null, photos: initialPhotos = [], ...others }) =
   const [postProfile, { isLoading: isPosting }] = usePostProfileMutation();
   const [editProfile, { isLoading: isEditing }] = useEditProfileMutation();
   const [addService, { isLoading: isAdding }] = useAddServiceMutation();
+  const [editUser] = useEditUserMutation();
   const [updateService, { isLoading: isUpdating }] = useAddServiceMutation();
   const [deleteService, { isLoading: isDeleting }] = useDeleteServiceMutation();
   const [postPhotos, { isLoading: isPostingPhotos }] = usePostPhotosMutation();
@@ -59,8 +61,8 @@ const AnketaForm = ({ profile = null, photos: initialPhotos = [], ...others }) =
   const [photos, setPhotos] = React.useState(initialPhotos);
 
   React.useEffect(() => {
-    if (initialPhotos.length > 0 && others?.isFetching) setPhotos(initialPhotos);
-  }, [initialPhotos, others?.isFetching]);
+    if (initialPhotos.length > 0) setPhotos(initialPhotos);
+  }, [initialPhotos]);
 
   if (
     isPosting ||
@@ -115,6 +117,8 @@ const AnketaForm = ({ profile = null, photos: initialPhotos = [], ...others }) =
             .required('Услуги обязательны'),
           name: Yup.string().max(255).required('Имя обязательно'),
           phone: Yup.string().max(255).required('Телефон обязателен'),
+          telegram: Yup.string().max(255),
+          whatsapp: Yup.string().max(255),
           profile_type: Yup.string().max(255).required('Тип обязателен'),
           gender: Yup.string().max(255).required('Пол обязателен'),
           age: Yup.number()
@@ -251,6 +255,12 @@ const AnketaForm = ({ profile = null, photos: initialPhotos = [], ...others }) =
                 } else {
                   await addServices(response.data.id);
                   await handlePostPhotos(response.data.id);
+                  await editUser({
+                    id: user?.user_id,
+                    email: user?.email,
+                    twitter_link: values?.telegram,
+                    facebook_link: values?.whatsapp,
+                  });
                 }
               } else {
                 const response = await editProfile(profileData);
@@ -259,6 +269,12 @@ const AnketaForm = ({ profile = null, photos: initialPhotos = [], ...others }) =
                 } else {
                   await addServices(profile.id);
                   await handlePostPhotos(profile.id);
+                  await editUser({
+                    id: user?.user_id,
+                    email: user?.email,
+                    twitter_link: values?.telegram,
+                    facebook_link: values?.whatsapp,
+                  });
                 }
               }
               setStatus({ success: false });
@@ -345,6 +361,48 @@ const AnketaForm = ({ profile = null, photos: initialPhotos = [], ...others }) =
                   </Grid>
                   <Grid item xs={12} md={6}>
                     <Stack spacing={1}>
+                      <InputLabel htmlFor="name-login">Телеграм</InputLabel>
+                      <OutlinedInput
+                        id="name-login"
+                        type="text"
+                        value={values.telegram || ''}
+                        name="telegram"
+                        onBlur={handleBlur}
+                        onChange={handleChange}
+                        placeholder="@username"
+                        fullWidth
+                        error={Boolean(touched.telegram && errors.telegram)}
+                      />
+                      {touched.telegram && errors.telegram && (
+                        <FormHelperText error id="helper-text-telegram-signup">
+                          {errors.telegram}
+                        </FormHelperText>
+                      )}
+                    </Stack>
+                  </Grid>
+                  <Grid item xs={12} md={6}>
+                    <Stack spacing={1}>
+                      <InputLabel htmlFor="whatsapp-login">Whatsapp</InputLabel>
+                      <OutlinedInput
+                        id="whatsapp-login"
+                        type="phone"
+                        value={values.whatsapp || ''}
+                        name="whatsapp"
+                        onBlur={handleBlur}
+                        onChange={handleChange}
+                        placeholder="+7 (999) 999-99-99"
+                        fullWidth
+                        error={Boolean(touched.whatsapp && errors.whatsapp)}
+                      />
+                      {touched.whatsapp && errors.whatsapp && (
+                        <FormHelperText error id="helper-text-whatsapp-signup">
+                          {errors.whatsapp}
+                        </FormHelperText>
+                      )}
+                    </Stack>
+                  </Grid>
+                  <Grid item xs={12} md={6}>
+                    <Stack spacing={1}>
                       <InputLabel id="profile_type-label">Тип</InputLabel>
                       <Select
                         sx={{
@@ -373,7 +431,7 @@ const AnketaForm = ({ profile = null, photos: initialPhotos = [], ...others }) =
                   </Grid>
                   <Grid item xs={12} md={6}>
                     <Stack spacing={1}>
-                      <InputLabel id="gender-label">Пол*</InputLabel>
+                      <InputLabel id="gender-label">Категория*</InputLabel>
                       <Select
                         sx={{
                           '& .MuiList-root': { backgroundColor: '#121212 !important' },
@@ -381,7 +439,7 @@ const AnketaForm = ({ profile = null, photos: initialPhotos = [], ...others }) =
                         labelId="gender-label"
                         id="gender"
                         value={values.gender || ''}
-                        label="Пол"
+                        label="Категория"
                         name="gender"
                         onChange={handleChange}
                       >
@@ -668,7 +726,7 @@ const AnketaForm = ({ profile = null, photos: initialPhotos = [], ...others }) =
                           required
                           type="number"
                           error={Boolean(touched.services && errors.services)}
-                          autoFocus
+                          autoFocus={!service?.price}
                         />
                         <CloseIcon
                           sx={{ cursor: 'pointer', ml: 1 }}

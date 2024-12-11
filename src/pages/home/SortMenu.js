@@ -6,7 +6,7 @@ import { Menu, Box, Typography, IconButton } from '@mui/material';
 import SortIcon from '@mui/icons-material/Sort';
 import { setSortOption } from 'store/reducers/action';
 
-const SortMenu = ({ anchorEl, open, handleClose, girls = [], setGirls }) => {
+const SortMenu = ({ anchorEl, open, handleClose }) => {
   const { sort } = useSelector((state) => state.catalog);
   const { sortOption } = useSelector((state) => state.action);
   const dispatch = useDispatch();
@@ -39,19 +39,13 @@ const SortMenu = ({ anchorEl, open, handleClose, girls = [], setGirls }) => {
           <Box sx={{ display: 'flex', gap: 1 }}>
             <IconButton
               onClick={() => {
-                dispatch(setSortOption({ id: item.id, option: 'desc' }));
+                if (item.id === sortOption.id && sortOption.option === 'desc') {
+                  dispatch(setSortOption({}));
+                  return;
+                }
+                dispatch(setSortOption({ id: item.id, option: 'desc', selected: item.selected }));
 
                 // sort
-                const sorted = [...girls].sort((a, b) => {
-                  if (a[item.id] > b[item.id]) {
-                    return -1;
-                  }
-                  if (a[item.id] < b[item.id]) {
-                    return 1;
-                  }
-                  return 0;
-                });
-                setGirls(sorted);
               }}
               sx={{
                 border: item.id === sortOption.id && sortOption.option === 'desc' && '1px solid',
@@ -61,19 +55,13 @@ const SortMenu = ({ anchorEl, open, handleClose, girls = [], setGirls }) => {
             </IconButton>
             <IconButton
               onClick={() => {
-                dispatch(setSortOption({ id: item.id, option: 'asc' }));
+                if (item.id === sortOption.id && sortOption.option === 'asc') {
+                  dispatch(setSortOption({}));
+                  return;
+                }
+                dispatch(setSortOption({ id: item.id, option: 'asc', selected: item.selected }));
 
                 // sort
-                const sorted = [...girls].sort((a, b) => {
-                  if (a[item.id] > b[item.id]) {
-                    return 1;
-                  }
-                  if (a[item.id] < b[item.id]) {
-                    return -1;
-                  }
-                  return 0;
-                });
-                setGirls(sorted);
               }}
               sx={{
                 transform: 'rotateX(180deg)',

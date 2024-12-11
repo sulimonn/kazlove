@@ -77,7 +77,7 @@ const DrawerHeader = ({ open }) => {
           <Box>
             <Button
               component={Link}
-              to={!!profile ? '/profile/me' : '/profile/add'}
+              to={isAuth ? (!!profile ? '/profile/me' : '/profile/add') : '/login'}
               color={
                 profile?.approved === 1 && profile?.checked === 1 ? 'primary' : 'error' || 'primary'
               }

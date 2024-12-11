@@ -10,7 +10,7 @@ const user = apiSlice.injectEndpoints({
     editUser: builder.mutation({
       query: (data) => ({
         url: `/users/${data.id}`,
-        method: 'PATCH',
+        method: 'PUT',
         body: data,
       }),
       invalidatesTags: ['User'],

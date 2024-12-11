@@ -5,6 +5,8 @@ import { useDispatch } from 'react-redux';
 import { Button } from '@mui/material';
 import { setFilterOptions, setGender } from 'store/reducers/action';
 const FilterItem = ({ option, filter, checked }) => {
+  console.log(filter);
+
   const ref = React.useRef();
   const dispatch = useDispatch();
 

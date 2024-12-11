@@ -115,7 +115,7 @@ const HeaderContent = () => {
             <Box display="flex" justifyContent="flex-end">
               <Button
                 component={Link}
-                to={!!profile ? '/profile/me' : '/profile/add'}
+                to={isAuth ? (!!profile ? '/profile/me' : '/profile/add') : '/login'}
                 color={
                   profile?.id
                     ? profile?.approved === 1 && profile?.checked === 1
