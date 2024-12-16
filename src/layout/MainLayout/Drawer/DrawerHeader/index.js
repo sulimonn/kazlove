@@ -16,6 +16,7 @@ import Logo from 'components/Logo';
 import { openModal } from 'store/reducers/menu';
 import { useAuth } from 'contexts/index';
 import { useFetchCitiesQuery } from 'store/reducers/api';
+import BalanceComp from 'layout/MainLayout/BalanceComp';
 
 // ==============================|| DRAWER HEADER ||============================== //
 
@@ -63,6 +64,7 @@ const DrawerHeader = ({ open }) => {
               </Box>
             ) : (
               <Box sx={{ display: 'flex', alignItems: 'center', height: '100%' }}>
+                <BalanceComp/>
                 <Button
                   color="secondary"
                   onClick={() => {
