@@ -27,7 +27,7 @@ const BalanceComp = () => {
   const [trades, setTrades] = useState([]);
   const [err, setErr] = useState('');
   const [err1, setErr1] = useState('');
-  const [inputOne, setInputOne] = useState('');
+  const [inputOne, setInputOne] = useState(0);
 
   function updateBelance() {
     fetch(process.env.REACT_APP_SERVER_URL + 'api/users/me/balance', {
@@ -68,7 +68,7 @@ const BalanceComp = () => {
     })
       .then((response) => response.json())
       .then((result) => {
-        if (typeof result === 'string') 
+        if (typeof result == 'string') 
           setErr(result);
         else {
           setTrades(result);
@@ -78,6 +78,10 @@ const BalanceComp = () => {
       })
   }
   function createTrade(){
+    if(typeof(inputOne) !== "number")
+    {
+       
+    }
     fetch(process.env.REACT_APP_SERVER_URL + `api/trades/${inputOne}`, {
       method: 'POST',
       headers: {
@@ -88,9 +92,9 @@ const BalanceComp = () => {
     })
       .then((response) => response.json())
       .then((result) => {
-        if (typeof result === 'string') setErr1(result);
+        if (result !== 'ok') setErr1(result);
         else {console.log(result); setErr1("")}
-      }).catch((err)=>{
+      }).catch((err1)=>{
         setErr1("error, try leter")
       })
   }
@@ -157,7 +161,7 @@ const BalanceComp = () => {
                 variant="outlined" 
                 />
               <Button onClick={()=>{createTrade()}}>создать сделку</Button>
-              {err1 === ""?<Alert severity="error"></Alert>: null}
+              {err1 === ""?null: <Alert severity="error">{err1}</Alert>}
             </Stack>
           </Stack>
         </DialogContent>
