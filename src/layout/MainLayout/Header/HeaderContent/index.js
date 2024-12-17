@@ -23,6 +23,7 @@ import { setCity } from 'store/reducers/action';
 import { openDrawer, openModal } from 'store/reducers/menu';
 import { useAuth } from 'contexts/index';
 import { useFetchCitiesQuery } from 'store/reducers/api';
+import BalanceComp from 'layout/MainLayout/BalanceComp';
 
 // ==============================|| HEADER - CONTENT ||============================== //
 const style = {
@@ -100,6 +101,7 @@ const HeaderContent = () => {
                 </Box>
               ) : (
                 <Box sx={{ display: 'flex', alignItems: 'center', height: '100%' }} ml={2}>
+                  <BalanceComp/>
                   <Button
                     color="secondary"
                     style={{ marginLeft: '10px' }}
