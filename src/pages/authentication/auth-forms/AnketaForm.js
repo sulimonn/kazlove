@@ -1,4 +1,5 @@
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
 // material-ui
 import {
   Button,
@@ -21,6 +22,7 @@ import { Formik } from 'formik';
 import AnimateButton from 'components/@extended/AnimateButton';
 import {
   useAddServiceMutation,
+  useDeleteMediaMutation,
   useDeleteProfilePhotoMutation,
   useDeleteServiceMutation,
   useEditProfileMutation,
@@ -28,6 +30,7 @@ import {
   useFetchGendersQuery,
   useFetchServicesQuery,
   useFetchTypesQuery,
+  usePostMediaMutation,
   usePostPhotosMutation,
   usePostProfileMutation,
 } from 'store/reducers/api';
@@ -41,7 +44,13 @@ import { useEditUserMutation } from 'store/reducers/users';
 
 // ============================|| FIREBASE - REGISTER ||============================ //
 
-const AnketaForm = ({ profile = null, photos: initialPhotos = [], ...others }) => {
+const AnketaForm = ({
+  profile = null,
+  photos: initialPhotos = [],
+  media: initialMedia = [],
+  ...others
+}) => {
+  const navigate = useNavigate();
   const { user } = useAuth();
 
   const [postProfile, { isLoading: isPosting }] = usePostProfileMutation();
@@ -52,6 +61,8 @@ const AnketaForm = ({ profile = null, photos: initialPhotos = [], ...others }) =
   const [deleteService, { isLoading: isDeleting }] = useDeleteServiceMutation();
   const [postPhotos, { isLoading: isPostingPhotos }] = usePostPhotosMutation();
   const [deletePhoto, { isLoading: isDeletingPhoto }] = useDeleteProfilePhotoMutation();
+  const [postMedia, { isLoading: isPostingMedia }] = usePostMediaMutation();
+  const [deleteMedia, { isLoading: isDeletingMedia }] = useDeleteMediaMutation();
 
   const { data: cities = [] } = useFetchCitiesQuery();
   const { data: genders = [] } = useFetchGendersQuery();
@@ -59,10 +70,12 @@ const AnketaForm = ({ profile = null, photos: initialPhotos = [], ...others }) =
   const { data: servicesData } = useFetchServicesQuery();
 
   const [photos, setPhotos] = React.useState(initialPhotos);
+  const [media, setMedia] = React.useState(initialMedia);
 
   React.useEffect(() => {
     if (initialPhotos.length > 0) setPhotos(initialPhotos);
-  }, [initialPhotos]);
+    if (initialMedia.length > 0) setMedia(initialMedia);
+  }, [initialPhotos, initialMedia]);
 
   if (
     isPosting ||
@@ -71,6 +84,8 @@ const AnketaForm = ({ profile = null, photos: initialPhotos = [], ...others }) =
     isDeleting ||
     isPostingPhotos ||
     isDeletingPhoto ||
+    isPostingMedia ||
+    isDeletingMedia ||
     isUpdating ||
     others?.isFetching
   ) {
@@ -102,6 +117,7 @@ const AnketaForm = ({ profile = null, photos: initialPhotos = [], ...others }) =
           gender: profile?.gender?.id || '',
           profile_type: profile?.profile_type?.id || '',
           photos: initialPhotos,
+          media: initialMedia,
           submit: null,
         }}
         validationSchema={Yup.object().shape({
@@ -163,6 +179,7 @@ const AnketaForm = ({ profile = null, photos: initialPhotos = [], ...others }) =
               const services = values.services;
               delete profileData.services;
               delete profileData.photos;
+              delete profileData.media;
               const addServices = async (profile_id) => {
                 const allServices = profile?.services || [];
                 const selectedServices = services || [];
@@ -247,6 +264,35 @@ const AnketaForm = ({ profile = null, photos: initialPhotos = [], ...others }) =
                 }
               };
 
+              const handlePostMedia = async (profile_id) => {
+                setMedia((prev) => prev.map((video) => video.upload));
+                const postFormData = new FormData();
+
+                media.forEach(async (video) => {
+                  if (video.upload && typeof video?.upload === 'object') {
+                    postFormData.append('file', video.upload);
+                  } else if (!video?.upload && video?.id) {
+                    await deleteMedia({ id: video.id, profile_id: profile_id });
+                  }
+                });
+
+                if (
+                  media.filter((video) => typeof video?.upload === 'object' && video?.upload)
+                    .length > 0
+                ) {
+                  const responseMedia = await postMedia({
+                    data: postFormData,
+                    profile_id: profile_id,
+                  });
+
+                  if (responseMedia?.error) {
+                    setErrors({ submit: 'Что то пошло не так при загрузке видео' });
+                  } else {
+                    setSubmitting(false);
+                  }
+                }
+              };
+
               if (!profile) {
                 const response = await postProfile({ ...profileData, user_id: user?.user_id });
                 if (response?.error) {
@@ -255,6 +301,7 @@ const AnketaForm = ({ profile = null, photos: initialPhotos = [], ...others }) =
                 } else {
                   await addServices(response.data.id);
                   await handlePostPhotos(response.data.id);
+                  await handlePostMedia(response.data.id);
                   await editUser({
                     id: user?.user_id,
                     email: user?.email,
@@ -269,6 +316,7 @@ const AnketaForm = ({ profile = null, photos: initialPhotos = [], ...others }) =
                 } else {
                   await addServices(profile.id);
                   await handlePostPhotos(profile.id);
+                  await handlePostMedia(profile.id);
                   await editUser({
                     id: user?.user_id,
                     email: user?.email,
@@ -284,6 +332,11 @@ const AnketaForm = ({ profile = null, photos: initialPhotos = [], ...others }) =
             setStatus({ success: false });
             setErrors({ submit: err.message });
             setSubmitting(false);
+          } finally {
+            setSubmitting(false);
+            if (!profile) {
+              navigate('/');
+            }
           }
         }}
       >
@@ -307,7 +360,13 @@ const AnketaForm = ({ profile = null, photos: initialPhotos = [], ...others }) =
                   justifyContent="space-between"
                   alignItems="center"
                 >
-                  <Pictures photos={photos} setPhotos={setPhotos} setFieldValue={setFieldValue} />
+                  <Pictures
+                    photos={photos}
+                    setPhotos={setPhotos}
+                    setFieldValue={setFieldValue}
+                    media={media}
+                    setMedia={setMedia}
+                  />
                   {errors.photos && (
                     <FormHelperText error id="helper-text-photos-form" sx={{ mx: 'auto' }}>
                       {errors.photos}

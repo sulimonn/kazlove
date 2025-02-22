@@ -1,6 +1,7 @@
 import React from 'react';
 import { Link as RouterLink, useNavigate } from 'react-router-dom';
 import { useAuth } from 'contexts';
+import { useDispatch } from 'react-redux';
 
 // material-ui
 import {
@@ -24,12 +25,16 @@ import AnimateButton from 'components/@extended/AnimateButton';
 
 // assets
 import { EyeOutlined, EyeInvisibleOutlined } from '@ant-design/icons';
+import { setEmail } from 'store/reducers/action';
+import { useResendCodeMutation } from 'store/reducers/api';
 
 // ============================|| FIREBASE - LOGIN ||============================ //
 
 const AuthLogin = () => {
   const { login } = useAuth();
+  const [senCode, { isLoading }] = useResendCodeMutation();
   const navigate = useNavigate();
+  const dispatch = useDispatch();
   const [showPassword, setShowPassword] = React.useState(false);
   const handleClickShowPassword = () => {
     setShowPassword(!showPassword);
@@ -43,8 +48,8 @@ const AuthLogin = () => {
     <>
       <Formik
         initialValues={{
-          email: 'sdf@wef.qwe',
-          password: '12345',
+          email: '',
+          password: '',
           submit: null,
         }}
         validationSchema={Yup.object().shape({
@@ -60,13 +65,23 @@ const AuthLogin = () => {
               social_link: values.email,
               password: values.password,
             });
-            console.log(response);
 
-            if (response?.status === 400 || response?.originalStatus === 500) {
+            if (
+              response?.status === 400 ||
+              response?.originalStatus === 500 ||
+              (response?.status === 403 && response?.data?.detail === 'Forbidden')
+            ) {
               setErrors({
                 email: true,
                 password: true,
                 submit: 'Неправильная почта или пароль',
+              });
+              setStatus({ success: false });
+            } else if (response?.status === 403) {
+              setErrors({
+                email: true,
+                submit: 'Почта не верифицирована',
+                status: 403,
               });
               setStatus({ success: false });
             }
@@ -83,7 +98,16 @@ const AuthLogin = () => {
           }
         }}
       >
-        {({ errors, handleBlur, handleChange, handleSubmit, isSubmitting, touched, values }) => (
+        {({
+          errors,
+          handleBlur,
+          handleChange,
+          handleSubmit,
+          isSubmitting,
+          touched,
+          values,
+          setErrors,
+        }) => (
           <form noValidate onSubmit={handleSubmit}>
             <Grid container spacing={3}>
               <Grid item xs={12}>
@@ -161,17 +185,39 @@ const AuthLogin = () => {
               )}
               <Grid item xs={12}>
                 <AnimateButton>
-                  <Button
-                    disableElevation
-                    disabled={isSubmitting}
-                    fullWidth
-                    size="large"
-                    type="submit"
-                    variant="contained"
-                    color="primary"
-                  >
-                    Войти
-                  </Button>
+                  {errors?.status === 403 ? (
+                    <Button
+                      disableElevation
+                      fullWidth
+                      size="large"
+                      variant="contained"
+                      color="secondary"
+                      onClick={async () => {
+                        const response = await senCode({ email: values.email });
+                        if (response?.error) {
+                          setErrors({ submit: 'Ошибка отправки кода' });
+                        } else {
+                          dispatch(setEmail({ email: values.email }));
+                          navigate('/verify-email');
+                        }
+                      }}
+                      disabled={isLoading}
+                    >
+                      Подтвердить почту
+                    </Button>
+                  ) : (
+                    <Button
+                      disableElevation
+                      disabled={isSubmitting}
+                      fullWidth
+                      size="large"
+                      type="submit"
+                      variant="contained"
+                      color="primary"
+                    >
+                      Войти
+                    </Button>
+                  )}
                 </AnimateButton>
               </Grid>
             </Grid>

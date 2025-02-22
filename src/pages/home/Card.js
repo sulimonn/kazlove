@@ -38,22 +38,54 @@ const Card = ({ girl }) => {
   return (
     <Box
       height={'550px'}
-      bgcolor={'background.paper'}
       borderRadius={2}
       sx={{
-        overflow: 'hidden',
+        background:
+          girl.promotion_level === 2
+            ? 'linear-gradient(to right, #462523 0, #cb9b51 45%,   #f6e27a 75%, #cb9b51 100%)'
+            : girl.promotion_level === 1
+              ? 'linear-gradient( to right, #2c003e 0%,rgb(62, 0, 43) 100%)'
+              : 'background.paper',
         border: '1px solid',
-        borderColor: 'divider',
+        borderColor:
+          girl.promotion_level === 2 || girl.promotion_level === 1 ? 'transparent' : 'divider',
         position: 'relative',
-
+        boxShadow:
+          girl.promotion_level === 2
+            ? '0 4px 15px rgba(255, 215, 0, 0.5)' // VIP shadow
+            : girl.promotion_level === 1
+              ? '0 4px 15px rgba(138, 43, 226, 0.5)' // Top shadow
+              : 'none',
         '& .swiper-horizontal > .swiper-scrollbar, .swiper-scrollbar.swiper-scrollbar-horizontal': {
-          top: ' var(--swiper-scrollbar-bottom, 4px)',
+          top: 'var(--swiper-scrollbar-bottom, 4px)',
           bottom: 'var(--swiper-scrollbar-top, auto)',
         },
       }}
       onMouseEnter={() => swiperRef.current.autoplay.start()} // stop autoplay on hover
       onMouseLeave={() => swiperRef.current.autoplay.stop()}
     >
+      {girl.promotion_level !== 0 && girl.tariff?.type?.name && (
+        <Box
+          position="absolute"
+          top={10}
+          left={10}
+          bgcolor="gold"
+          color="black"
+          px={2}
+          py={1}
+          zIndex={10}
+          borderRadius={1}
+          sx={{
+            boxShadow: '0 2px 4px rgba(0,0,0,0.3)',
+            transform: 'rotate(-20deg) translate(-15px, -15px)',
+          }}
+        >
+          <Typography variant="h4" fontWeight="bold">
+            {girl.tariff?.type?.name}
+          </Typography>
+        </Box>
+      )}
+
       <Swiper
         modules={[Scrollbar, A11y, Autoplay]}
         spaceBetween={0}

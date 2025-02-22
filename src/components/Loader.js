@@ -7,11 +7,14 @@ const LoaderWrapper = styled('div')(({ theme }) => ({
   position: 'fixed',
   top: 0,
   left: 0,
-  zIndex: 2001,
+  right: 0,
+  bottom: 0,
+  zIndex: 9001,
   width: '100%',
   '& > * + *': {
-    marginTop: theme.spacing(2)
-  }
+    marginTop: theme.spacing(2),
+  },
+  backgroundColor: theme.palette.background.paper,
 }));
 
 // ==============================|| Loader ||============================== //

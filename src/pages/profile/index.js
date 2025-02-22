@@ -22,6 +22,7 @@ import {
   useGetProfileCommentsQuery,
   usePostCommentMutation,
   useDeleteCommentMutation,
+  useFetchMediaQuery,
 } from 'store/reducers/api';
 import { useAuth } from 'contexts/index';
 import Loader from 'components/Loader';
@@ -31,6 +32,7 @@ const Profile = () => {
   const { id } = useParams();
   const { user } = useAuth();
   const [photos, setPhotos] = useState([]);
+  const [media, setMedia] = useState([]);
   const [newComment, setNewComment] = useState({});
   const [showContact, setShowContact] = useState(false);
 
@@ -40,6 +42,7 @@ const Profile = () => {
     isFetching: photoIsFetching,
     refetch,
   } = useGetProfilePhotosQuery(id);
+  const { data: intitialMedia = [], isFetching: mediaIsFetching } = useFetchMediaQuery(id);
   const { data: comments = [] } = useGetProfileCommentsQuery(id);
   const [postComment, { isLoading }] = usePostCommentMutation();
   const [deleteComment, { isLoading: isDeletingComment }] = useDeleteCommentMutation();
@@ -54,7 +57,16 @@ const Profile = () => {
         }))
       );
     }
-  }, [photoData]);
+
+    if (intitialMedia.length > 0) {
+      setMedia(
+        intitialMedia.map((photo) => ({
+          id: photo[0],
+          upload: process.env.REACT_APP_SERVER_URL + photo[1],
+        }))
+      );
+    }
+  }, [photoData, intitialMedia]);
 
   // Handle comment submission
   const handleCommentSubmit = async () => {
@@ -74,7 +86,7 @@ const Profile = () => {
       }
     }
   };
-  if (isFetching || photoIsFetching) {
+  if (isFetching || photoIsFetching || mediaIsFetching) {
     return <Loader />;
   }
 
@@ -109,7 +121,7 @@ const Profile = () => {
       </Stack>
       <Box sx={{ display: 'flex', gap: 3, flexDirection: { xs: 'column', sm: 'row' } }}>
         <Box height={{ xs: 450, sm: 700 }} width={{ xs: '100%', sm: 550 }}>
-          {photos.length > 0 && <MySwiper photos={photos} refetch={refetch} />}
+          {photos.length > 0 && <MySwiper photos={photos} refetch={refetch} media={media} />}
         </Box>
         <Box flex={1}>
           <Stack spacing={1.5} justifyContent="left">

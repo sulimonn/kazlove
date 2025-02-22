@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Link as RouterLink, useNavigate } from 'react-router-dom';
+import { useDispatch } from 'react-redux';
 
 // material-ui
 import {
@@ -28,11 +29,15 @@ import { strengthColor, strengthIndicator } from 'utils/password-strength';
 // assets
 import { EyeOutlined, EyeInvisibleOutlined } from '@ant-design/icons';
 import { useAuth } from 'contexts/index';
+import { setEmail } from 'store/reducers/action';
+import { useResendCodeMutation } from 'store/reducers/api';
 
 // ============================|| FIREBASE - REGISTER ||============================ //
 
 const AuthRegister = () => {
+  const dispatch = useDispatch();
   const { register } = useAuth();
+  const [sendCode] = useResendCodeMutation();
   const navigate = useNavigate();
   const [level, setLevel] = useState();
   const [showPassword, setShowPassword] = useState(false);
@@ -59,6 +64,7 @@ const AuthRegister = () => {
         initialValues={{
           email: '',
           password: '',
+          password2: '',
           submit: null,
         }}
         validationSchema={Yup.object().shape({
@@ -66,7 +72,17 @@ const AuthRegister = () => {
             .email('Введите корректный email')
             .max(255)
             .required('Email обязателен'),
-          password: Yup.string().max(255).required('Пароль обязателен'),
+          password: Yup.string()
+            .min(8, 'Пароль должен содержать минимум 8 символов')
+            .matches(/[A-Z]/, 'Пароль должен содержать хотя бы одну заглавную букву')
+            .matches(/[a-z]/, 'Пароль должен содержать хотя бы одну строчную букву')
+            .matches(/\d/, 'Пароль должен содержать хотя бы одну цифру')
+            .max(255)
+            .required('Пароль обязателен'),
+          password2: Yup.string()
+            .max(255)
+            .oneOf([Yup.ref('password'), null], 'Пароли должны совпадать')
+            .required('Подтвердите пароль'),
         })}
         onSubmit={async (values, { setErrors, setStatus, setSubmitting }) => {
           try {
@@ -79,7 +95,14 @@ const AuthRegister = () => {
               setStatus({ success: false });
             }
             if (!response) {
-              navigate('/', { replace: true }); // Redirect to the main page
+              const res = await sendCode({ email: values.email });
+              if (res?.error) {
+                setStatus({ success: false });
+                setSubmitting(false);
+                return;
+              }
+              dispatch(setEmail(values));
+              navigate('/verify-email', { replace: true });
             }
           } catch (err) {
             console.error(err);
@@ -148,6 +171,30 @@ const AuthRegister = () => {
                   {touched.password && errors.password && (
                     <FormHelperText error id="helper-text-password-signup">
                       {errors.password}
+                    </FormHelperText>
+                  )}
+                </Stack>
+
+                <Stack spacing={1} mt={2}>
+                  <InputLabel htmlFor="password2-signup">Подтвердите пароль*</InputLabel>
+                  <OutlinedInput
+                    fullWidth
+                    error={Boolean(touched.password2 && errors.password2)}
+                    id="password2-signup"
+                    type="password"
+                    value={values.password2}
+                    name="password2"
+                    onBlur={handleBlur}
+                    onChange={(e) => {
+                      handleChange(e);
+                      changePassword(e.target.value);
+                    }}
+                    placeholder="******"
+                    inputProps={{}}
+                  />
+                  {touched.password2 && errors.password2 && (
+                    <FormHelperText error id="helper-text-password2-signup">
+                      {errors.password2}
                     </FormHelperText>
                   )}
                 </Stack>

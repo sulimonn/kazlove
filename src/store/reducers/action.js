@@ -5,7 +5,7 @@ const initialState = {
   drawerType: '',
   sortOption: {},
   filterOptions: [],
-  city: parseInt(localStorage.getItem('city')) || -1,
+  city: parseInt(localStorage.getItem('city')) || -2,
   gender: localStorage.getItem('gender')
     ? localStorage.getItem('gender').toString().split(',').map(Number)
     : [],
@@ -22,6 +22,10 @@ const initialState = {
     : [],
   profile_type: localStorage.getItem('profile_type'),
   price: localStorage.getItem('price') ? localStorage.getItem('price').split(',').map(Number) : [],
+  email: localStorage.getItem('email') || null,
+  password: localStorage.getItem('password') || null,
+  codeSent: localStorage.getItem('codeSent') || false,
+  balanceOpen: false,
 };
 
 const actionSlice = createSlice({
@@ -52,14 +56,8 @@ const actionSlice = createSlice({
       localStorage.setItem(id, option);
     },
     setCity: (state, action) => {
-      if (action.payload === -1) {
-        state.city = null;
-        delete state.city;
-        localStorage.removeItem('city');
-      } else {
-        state.city = action.payload;
-        localStorage.setItem('city', action.payload);
-      }
+      state.city = action.payload;
+      localStorage.setItem('city', action.payload);
     },
     setGender: (state, action) => {
       const id = parseInt(action.payload);
@@ -80,6 +78,26 @@ const actionSlice = createSlice({
         localStorage.setItem('services', JSON.stringify(action.payload));
       }
     },
+
+    setEmail: (state, action) => {
+      state.codeSent = true;
+      state.email = action.payload.email;
+      state.password = action.payload.password;
+      localStorage.setItem('codeSent', true);
+      localStorage.setItem('email', action.payload.email);
+      localStorage.setItem('password', action.payload.password);
+    },
+    resetCode: (state, action) => {
+      state.codeSent = false;
+      state.email = null;
+      state.password = null;
+      localStorage.removeItem('codeSent');
+      localStorage.removeItem('email');
+      localStorage.removeItem('password');
+    },
+    setBalanceOpen: (state, action) => {
+      state.balanceOpen = action.payload;
+    },
   },
 });
 
@@ -93,6 +111,9 @@ export const {
   setGender,
   setSwiperFilter,
   setServices,
+  setEmail,
+  resetCode,
+  setBalanceOpen,
 } = actionSlice.actions;
 
 export default actionSlice.reducer;

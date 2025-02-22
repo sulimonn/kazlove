@@ -26,28 +26,9 @@ export const authApi = apiSlice.injectEndpoints({
       }),
       invalidatesTags: ['User'],
     }),
-    logout: builder.mutation({
-      query: () => ({
-        url: '/auth/jwt/logout',
-        method: 'POST',
-        credentials: 'include',
-      }),
-    }),
-    resetPassword: builder.mutation({
-      query: (credentials) => ({
-        url: '/auth/forgot-password',
-        method: 'POST',
-        body: { ...credentials },
-      }),
-    }),
   }),
 });
 
-export const {
-  useLoginMutation,
-  useRegisterMutation,
-  useLogoutMutation,
-  useResetPasswordMutation,
-} = authApi;
+export const { useLoginMutation, useRegisterMutation } = authApi;
 
 export default authApi;

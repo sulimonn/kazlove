@@ -44,7 +44,7 @@ const DrawerHeader = ({ open }) => {
                 onClick={handleOpen}
                 sx={{ textTransform: 'none', whiteSpace: 'nowrap' }}
               >
-                {city
+                {city !== -2
                   ? [...cities, { id: -1, name: 'Все города' }]?.find((item) => item.id === city)
                       ?.name
                   : 'Выбрать город'}
@@ -64,7 +64,7 @@ const DrawerHeader = ({ open }) => {
               </Box>
             ) : (
               <Box sx={{ display: 'flex', alignItems: 'center', height: '100%' }}>
-                <BalanceComp/>
+                <BalanceComp />
                 <Button
                   color="secondary"
                   onClick={() => {

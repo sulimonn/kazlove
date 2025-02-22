@@ -1,0 +1,20 @@
+.card-top {
+  background: linear-gradient(135deg, gold, white);
+  border: 2px solid gold;
+  box-shadow: 0 4px 8px rgba(255, 215, 0, 0.4);
+}
+
+.card-vip {
+  background: #2c003e; /* Темно-фиолетовый */
+  border: 2px solid #8a2be2; /* Фиолетовая обводка */
+  box-shadow: 0 4px 15px rgba(138, 43, 226, 0.5);
+}
+
+.card-top .price,
+.card-vip .price {
+  background: gold;
+  color: black;
+  font-weight: bold;
+  padding: 4px 8px;
+  border-radius: 8px;
+}

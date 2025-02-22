@@ -80,7 +80,7 @@ const HeaderContent = () => {
                   onClick={handleOpen}
                   sx={{ textTransform: 'none' }}
                 >
-                  {selected
+                  {selected !== -2
                     ? [...cities, { id: -1, name: 'Все города' }]?.find(
                         (item) => item.id === selected
                       )?.name
@@ -101,7 +101,7 @@ const HeaderContent = () => {
                 </Box>
               ) : (
                 <Box sx={{ display: 'flex', alignItems: 'center', height: '100%' }} ml={2}>
-                  <BalanceComp/>
+                  <BalanceComp />
                   <Button
                     color="secondary"
                     style={{ marginLeft: '10px' }}
@@ -160,9 +160,15 @@ const HeaderContent = () => {
             onChange={(e) => {
               setSelected(e.target.value);
             }}
+            placeholder="Выберите город"
             sx={{ width: '100%', my: 3, borderRadius: 40 }}
           >
+            <MenuItem value={-2} sx={{ color: 'text.secondary' }} disabled>
+              Выбрать город
+            </MenuItem>
+
             <MenuItem value={-1}>Все города</MenuItem>
+
             {cities?.map((item) => (
               <MenuItem key={item.id} value={item.id}>
                 {item.name}

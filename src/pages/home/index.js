@@ -15,10 +15,14 @@ import { Sort } from '@mui/icons-material';
 import Card from './Card';
 import SortMenu from './SortMenu';
 import FilterMenu from './FilterMenu';
-import { useFetchCitiesQuery, useFetchProfilesQuery } from 'store/reducers/api';
+import {
+  useFetchCitiesQuery,
+  useFetchProfilesQuery,
+  useFetchTariffTypesQuery,
+} from 'store/reducers/api';
 import { openModal } from 'store/reducers/menu';
 import Loader from 'components/Loader';
-import { shuffle } from 'utils/createPreview';
+import { shufflePerPromotionLevel } from 'utils/createPreview';
 import Category from './Category';
 
 // ==============================|| DASHBOARD - DEFAULT ||============================== //
@@ -28,6 +32,7 @@ const Home = () => {
   const matches = useMediaQuery(theme.breakpoints.down('sm'));
   const { data = [] } = useFetchProfilesQuery();
   const { data: cities = [] } = useFetchCitiesQuery();
+  const { data: tariffTypes = [] } = useFetchTariffTypesQuery();
 
   const [sortAnchorEl, setSortAnchorEl] = React.useState(null);
   const [filterAnchorEl, setfilterAnchorEl] = React.useState(null);
@@ -58,28 +63,34 @@ const Home = () => {
     dispatch(openModal({ modalOpen: true }));
   };
   useEffect(() => {
-    if (city < 0 || typeof city !== 'number') {
+    if (city === -2) {
       dispatch(openModal({ modalOpen: true }));
     }
   }, [dispatch, city]);
 
   useEffect(() => {
-    if (data.length > 0) {
+    if (data.length > 0 && tariffTypes.length > 0) {
       // Filter girls with promotion_level S based on conditions
-      const filteredGirls = data.filter((girl) => girl.approved === 1 && girl.checked === 1);
-      const promotionTop = shuffle(
-        filteredGirls.filter((girl) => {
-          console.log(girl.name, girl.promotion_level, 2, girl.city?.id, city, city <= 0);
+      const filteredGirls = data
+        .filter((girl) => girl.approved === 1 && girl.checked === 1)
+        .map((girl) => ({
+          ...girl,
+          tariff: {
+            ...girl.tariff,
+            type: tariffTypes.find((t) => t.id === girl.tariff.type),
+          },
+          promotion_level: tariffTypes.find((t) => {
+            console.log(t, girl.tariff.type);
 
-          return girl.promotion_level === 2 && (girl.city?.id === city || city <= 0);
+            return t.id === girl.tariff.type;
+          })?.promotion_level,
+        }));
+      const promotionTop = shufflePerPromotionLevel(
+        filteredGirls.filter((girl) => {
+          return (girl.city?.id === city || city <= 0) && girl.promotion_level > 0;
         })
       );
 
-      const promotionVip = shuffle(
-        filteredGirls.filter(
-          (girl) => girl.promotion_level === 1 && (girl.city?.id === city || city <= 0)
-        )
-      );
       let promotionStn = filteredGirls.filter((girl) => girl.promotion_level === 0);
 
       if (typeof city === 'number' && city > 0) {
@@ -128,11 +139,9 @@ const Home = () => {
 
       // Shuffle filtered S
       promotionStn = !sortOption?.id
-        ? shuffle(promotionStn)
+        ? shufflePerPromotionLevel(promotionStn)
         : sortOption?.option === 'asc'
           ? [...promotionStn].sort((a, b) => {
-              console.log(a[sortOption.id], b[sortOption.id]);
-
               if (a[sortOption.id] > b[sortOption.id]) {
                 return -1;
               }
@@ -146,23 +155,22 @@ const Home = () => {
 
               return -1;
             });
-      const remainingTop = shuffle(
-        filteredGirls.filter((girl) => girl.promotion_level === 2 && girl.city?.id !== city)
+
+      const remainingTop = shufflePerPromotionLevel(
+        filteredGirls.filter(
+          (girl) => girl.promotion_level !== 0 && girl.city?.id !== city && city >= 0
+        )
       );
-      const remainingVip = shuffle(
-        filteredGirls.filter((girl) => girl.promotion_level === 1 && girl.city?.id !== city)
-      );
+
       let remainingGirls = filteredGirls.filter(
         (girl) =>
           !promotionStn.includes(girl) &&
           !remainingTop.includes(girl) &&
-          !remainingVip.includes(girl) &&
-          !promotionTop.includes(girl) &&
-          !promotionVip.includes(girl)
+          !promotionTop.includes(girl)
       );
 
       remainingGirls = !sortOption?.id
-        ? shuffle(remainingGirls)
+        ? shufflePerPromotionLevel(remainingGirls)
         : sortOption?.option === 'asc'
           ? [...remainingGirls].sort((a, b) => {
               if (a[sortOption.id] > b[sortOption.id]) {
@@ -184,15 +192,7 @@ const Home = () => {
             });
 
       // Combine all arrays in the desired order
-      const finalGirls = [
-        ...promotionTop,
-        ...promotionVip,
-        ...promotionStn,
-        ...remainingTop,
-        ...remainingVip,
-        ...remainingGirls,
-      ];
-      console.log(finalGirls);
+      const finalGirls = [...promotionTop, ...promotionStn, ...remainingTop, ...remainingGirls];
 
       //const finalGirls = [...promotionStn, ...remainingGirls];
 
@@ -200,7 +200,19 @@ const Home = () => {
       setGirls(finalGirls);
       setLoading(false);
     }
-  }, [data, city, gender, weight, height, age, price, breast_size, services, sortOption]);
+  }, [
+    data,
+    city,
+    gender,
+    weight,
+    height,
+    age,
+    price,
+    breast_size,
+    services,
+    sortOption,
+    tariffTypes,
+  ]);
 
   if (loading) {
     return <Loader />;
@@ -234,7 +246,7 @@ const Home = () => {
             onClick={handleOpen}
             sx={{ textTransform: 'none', whiteSpace: 'nowrap' }}
           >
-            {city
+            {city !== -2
               ? [...cities, { id: -1, name: 'Все города' }]?.find((item) => item.id === city)?.name
               : 'Выбрать город'}
           </Button>

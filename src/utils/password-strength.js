@@ -27,3 +27,8 @@ export const strengthIndicator = (number) => {
   if (hasMixed(number)) strengths += 1;
   return strengths;
 };
+export const maskEmail = (email) => {
+  const [localPart, domain] = email.split('@');
+  const maskedLocal = localPart.slice(0, 3) + '*****'; // Mask part of the local part
+  return `${maskedLocal}@${domain}`;
+};

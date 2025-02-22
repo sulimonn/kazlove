@@ -42,6 +42,10 @@ const api = apiSlice.injectEndpoints({
       query: () => '/cities/all',
       providesTags: ['City'],
     }),
+    getCity: builder.query({
+      query: (id) => `/cities/${id}`,
+      providesTags: ['City'],
+    }),
     fetchTypes: builder.query({
       query: () => '/profile_types/all',
       providesTags: ['Type'],
@@ -75,14 +79,11 @@ const api = apiSlice.injectEndpoints({
       invalidatesTags: ['Service'],
     }),
     postPhotos: builder.mutation({
-      query: ({ data, profile_id }) => {
-        console.log(data, profile_id);
-        return {
-          url: `/profiles/${profile_id}/photos`,
-          method: 'POST',
-          body: data,
-        };
-      },
+      query: ({ data, profile_id }) => ({
+        url: `/profiles/${profile_id}/photos`,
+        method: 'POST',
+        body: data,
+      }),
       invalidatesTags: ['Profile'],
     }),
     getProfilePhotos: builder.query({
@@ -119,6 +120,61 @@ const api = apiSlice.injectEndpoints({
       }),
       invalidatesTags: ['Comments'],
     }),
+    fetchTariffs: builder.query({
+      query: () => '/tariffs/all',
+    }),
+    fetchMedia: builder.query({
+      query: (id) => `/profiles/${id}/media/`,
+      providesTags: ['Profile'],
+    }),
+    postMedia: builder.mutation({
+      query: ({ data, profile_id }) => ({
+        url: `/profiles/${profile_id}/media/`,
+        method: 'POST',
+        body: data,
+      }),
+      invalidatesTags: ['Profile'],
+    }),
+    deleteMedia: builder.mutation({
+      query: ({ id, profile_id }) => ({
+        url: `/profiles/${profile_id}/media/${id}`,
+        method: 'DELETE',
+      }),
+      invalidatesTags: ['Profile'],
+    }),
+    resendCode: builder.mutation({
+      query: (email) => ({
+        url: `/send-verification-email`,
+        method: 'POST',
+        body: email,
+      }),
+    }),
+    verifyEmail: builder.mutation({
+      query: (email) => ({
+        url: `/verify`,
+        method: 'POST',
+        body: email,
+      }),
+    }),
+    updateTariff: builder.mutation({
+      query: (data) => ({
+        url: '/profiles/tariff/',
+        method: 'PATCH',
+        body: data,
+      }),
+      invalidatesTags: ['Tariffs', 'Profile', 'Balance'],
+    }),
+    deleteTariff: builder.mutation({
+      query: () => ({
+        url: '/profiles/tariff/',
+        method: 'DELETE',
+      }),
+      invalidatesTags: ['Tariffs', 'Profile', 'Balance'],
+    }),
+    fetchTariffTypes: builder.query({
+      query: () => '/tariff-types/all',
+      providesTags: ['Tariffs'],
+    }),
   }),
 });
 
@@ -142,6 +198,16 @@ export const {
   useDeleteProfileMutation,
   useDeleteCommentMutation,
   useUpdateServiceMutation,
+  useFetchTariffsQuery,
+  useFetchMediaQuery,
+  usePostMediaMutation,
+  useDeleteMediaMutation,
+  useResendCodeMutation,
+  useVerifyEmailMutation,
+  useGetCityQuery,
+  useUpdateTariffMutation,
+  useDeleteTariffMutation,
+  useFetchTariffTypesQuery,
 } = api;
 
 export default api;

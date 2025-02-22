@@ -17,7 +17,11 @@ import DeleteIcon from '@mui/icons-material/Delete';
 // project import
 import AnketaForm from './auth-forms/AnketaForm';
 import { useAuth } from 'contexts/index';
-import { useDeleteProfileMutation, useGetProfilePhotosQuery } from 'store/reducers/api';
+import {
+  useDeleteProfileMutation,
+  useFetchMediaQuery,
+  useGetProfilePhotosQuery,
+} from 'store/reducers/api';
 import TariffForm from './auth-forms/TariffForm';
 
 // ================================|| LOGIN ||================================ //
@@ -40,7 +44,10 @@ const MyProfile = () => {
   const navigate = useNavigate();
   const { profile } = useAuth();
   const { data: photos = [], isFetching } = useGetProfilePhotosQuery(profile?.id || 0);
+  const { data: media = [], isFetching: mediaIsFetching } = useFetchMediaQuery(profile?.id || 0);
   const [deleteProfile, { isLoading: isDeleting }] = useDeleteProfileMutation();
+
+  if (!profile) return navigate('/');
 
   return (
     <>
@@ -55,24 +62,28 @@ const MyProfile = () => {
                 sx={{ mb: { xs: -0.3 } }}
               >
                 <TabList onChange={handleChange} aria-label="lab API tabs example" sx={{}}>
-                  <Tab label={<Typography variant="h4">Профиль</Typography>} value="profile" />
-                  <Tab label={<Typography variant="h4">Тариф</Typography>} value="tariff" />
-                </TabList>
-                <Button
-                  color="error"
-                  sx={{ textTransform: 'none', alignSelf: 'flex-end' }}
-                  endIcon={<DeleteIcon />}
-                  onClick={handleClickOpen}
-                  disabled={isDeleting}
-                >
-                  {!isDeleting ? (
-                    'Удалить'
-                  ) : (
-                    <>
-                      Удаляется <CircularProgress size={15} />
-                    </>
+                  <Tab label={<Typography variant="h4">Анкета</Typography>} value="profile" />
+                  {profile?.checked && profile?.approved && (
+                    <Tab label={<Typography variant="h4">Тариф</Typography>} value="tariff" />
                   )}
-                </Button>
+                </TabList>
+                {value === 'profile' && (
+                  <Button
+                    color="error"
+                    sx={{ textTransform: 'none', alignSelf: 'flex-end' }}
+                    endIcon={<DeleteIcon />}
+                    onClick={handleClickOpen}
+                    disabled={isDeleting}
+                  >
+                    {!isDeleting ? (
+                      'Удалить анкету'
+                    ) : (
+                      <>
+                        Удаляется <CircularProgress size={15} />
+                      </>
+                    )}
+                  </Button>
+                )}
               </Stack>
             </Grid>
             <Grid item xs={12}>
@@ -87,11 +98,20 @@ const MyProfile = () => {
                         }))
                       : []
                   }
-                  isFetching={isFetching}
+                  isFetching={isFetching || mediaIsFetching}
+                  media={
+                    media.length > 0
+                      ? media.map((photo) => ({
+                          id: photo[0],
+                          upload: process.env.REACT_APP_SERVER_URL + photo[1],
+                          media: 'video',
+                        }))
+                      : []
+                  }
                 />
               </TabPanel>
               <TabPanel value="tariff">
-                <TariffForm />
+                <TariffForm profile={profile} />
               </TabPanel>
             </Grid>
           </Grid>

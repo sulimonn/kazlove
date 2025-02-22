@@ -1,79 +1,59 @@
 import React from 'react';
-import { Link as RouterLink, useNavigate } from 'react-router-dom';
-import { useAuth } from 'contexts';
+import { useDispatch } from 'react-redux';
 
 // material-ui
 import {
-  Button,
-  FormHelperText,
   Grid,
-  Link,
-  IconButton,
-  InputAdornment,
-  InputLabel,
-  OutlinedInput,
+  Card,
+  CardContent,
+  Typography,
+  Button,
   Stack,
+  FormHelperText,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogContentText,
 } from '@mui/material';
+import { useTheme } from '@mui/material/styles';
 
 // third party
 import * as Yup from 'yup';
 import { Formik } from 'formik';
 
 // project import
-import AnimateButton from 'components/@extended/AnimateButton';
+import {
+  useDeleteTariffMutation,
+  useFetchCitiesQuery,
+  useUpdateTariffMutation,
+} from 'store/reducers/api';
+import { setBalanceOpen } from 'store/reducers/action';
 
-// assets
-import { EyeOutlined, EyeInvisibleOutlined } from '@ant-design/icons';
+const TariffForm = ({ profile }) => {
+  const [open, setOpen] = React.useState(false);
+  const { data: cities = [] } = useFetchCitiesQuery();
+  const [updateTariff] = useUpdateTariffMutation();
+  const [deleteTariff] = useDeleteTariffMutation();
+  const theme = useTheme();
+  const dispatch = useDispatch();
 
-// ============================|| FIREBASE - LOGIN ||============================ //
-
-const TariffForm = () => {
-  const { login } = useAuth();
-  const navigate = useNavigate();
-  const [showPassword, setShowPassword] = React.useState(false);
-  const handleClickShowPassword = () => {
-    setShowPassword(!showPassword);
+  const handleClose = () => {
+    setOpen(false);
   };
-
-  const handleMouseDownPassword = (event) => {
-    event.preventDefault();
-  };
+  console.log(cities, profile.city);
 
   return (
     <>
       <Formik
         initialValues={{
-          email: 'sdf@wef.qwe',
-          password: '12345',
-          submit: null,
+          tariff: profile.tariff?.id || '',
         }}
         validationSchema={Yup.object().shape({
-          email: Yup.string()
-            .email('Введите корректный email')
-            .max(255)
-            .required('Email обязателен'),
-          password: Yup.string().max(255).required('Пароль обязателен'),
+          tariff: Yup.string(),
         })}
         onSubmit={async (values, { setErrors, setStatus, setSubmitting }) => {
           try {
-            const response = await login({
-              social_link: values.email,
-              password: values.password,
-            });
-            console.log(response);
-
-            if (response?.status === 400 || response?.originalStatus === 500) {
-              setErrors({
-                email: true,
-                password: true,
-                submit: 'Неправильная почта или пароль',
-              });
-              setStatus({ success: false });
-            }
-
-            if (response === null) {
-              navigate('/', { replace: true }); // Redirect to the main page
-            }
+            console.log('Selected Tariff:', values.tariff);
           } catch (err) {
             console.error(err);
             setStatus({ success: false });
@@ -83,101 +63,136 @@ const TariffForm = () => {
           }
         }}
       >
-        {({ errors, handleBlur, handleChange, handleSubmit, isSubmitting, touched, values }) => (
-          <form noValidate onSubmit={handleSubmit}>
+        {({ values, setFieldValue, setErrors, errors, setSubmitting, setStatus, isSubmitting }) => (
+          <form noValidate>
             <Grid container spacing={3}>
               <Grid item xs={12}>
-                <Stack spacing={1}>
-                  <InputLabel htmlFor="email-login">Email</InputLabel>
-                  <OutlinedInput
-                    id="email-login"
-                    type="email"
-                    value={values.email}
-                    name="email"
-                    onBlur={handleBlur}
-                    onChange={handleChange}
-                    placeholder="Enter email address"
-                    fullWidth
-                    error={Boolean(touched.email && errors.email)}
-                  />
-                  {touched.email && errors.email && typeof errors.email === 'string' && (
-                    <FormHelperText error id="standard-weight-helper-text-email-login">
-                      {errors.email}
-                    </FormHelperText>
-                  )}
+                <Stack direction="column" spacing={1} alignItems="center">
+                  <Typography variant="h4">
+                    Выбранный тариф будет активен <b>в течение 1 часа</b> после активации.
+                  </Typography>
                 </Stack>
               </Grid>
               <Grid item xs={12}>
-                <Stack spacing={1}>
-                  <InputLabel htmlFor="password-login">Пароль</InputLabel>
-                  <OutlinedInput
-                    fullWidth
-                    error={Boolean(touched.password && errors.password)}
-                    id="-password-login"
-                    type={showPassword ? 'text' : 'password'}
-                    value={values.password}
-                    name="password"
-                    onBlur={handleBlur}
-                    onChange={handleChange}
-                    endAdornment={
-                      <InputAdornment position="end">
-                        <IconButton
-                          aria-label="toggle password visibility"
-                          onClick={handleClickShowPassword}
-                          onMouseDown={handleMouseDownPassword}
-                          edge="end"
-                          size="large"
-                        >
-                          {showPassword ? <EyeOutlined /> : <EyeInvisibleOutlined />}
-                        </IconButton>
-                      </InputAdornment>
-                    }
-                    placeholder="Enter password"
-                  />
-                  {touched.password && errors.password && typeof errors.password === 'string' && (
-                    <FormHelperText error id="standard-weight-helper-text-password-login">
-                      {errors.password}
-                    </FormHelperText>
-                  )}
-                </Stack>
+                {errors.submit && (
+                  <FormHelperText error id="helper-text-submit-tariff">
+                    {errors.submit}
+                  </FormHelperText>
+                )}
               </Grid>
+              {cities
+                .find((city) => city.id === profile?.city?.id)
+                ?.tariffs?.map((tariff) => {
+                  const isSelected = values.tariff === tariff.id;
 
-              <Grid item xs={12} sx={{ mt: -1 }}>
-                <Stack
-                  direction="row"
-                  justifyContent="space-between"
-                  alignItems="center"
-                  spacing={2}
-                >
-                  <Link variant="h6" component={RouterLink} to="" color="text.primary">
-                    Забыли пароль?
-                  </Link>
-                </Stack>
-              </Grid>
-              {errors.submit && (
-                <Grid item xs={12}>
-                  <FormHelperText error>{errors.submit}</FormHelperText>
-                </Grid>
-              )}
-              <Grid item xs={12}>
-                <AnimateButton>
-                  <Button
-                    disableElevation
-                    disabled={isSubmitting}
-                    fullWidth
-                    size="large"
-                    type="submit"
-                    variant="contained"
-                    color="primary"
-                  >
-                    Войти
-                  </Button>
-                </AnimateButton>
-              </Grid>
+                  return (
+                    <Grid item xs={12} sm={6} key={tariff.id}>
+                      <Card
+                        sx={{
+                          border: isSelected ? '1px solid' : '1px solid',
+                          borderColor: isSelected ? 'primary.main' : 'rgba(224, 224, 224, 0.67)',
+                          boxShadow: isSelected ? theme.customShadows.z1 : 'none',
+                          transition: '0.3s',
+                          cursor: 'pointer',
+                          backgroundColor: isSelected ? 'primary.lighter' : 'transparent',
+                        }}
+                      >
+                        <CardContent>
+                          <Stack direction="row" alignItems="space-between" spacing={1}>
+                            <Typography variant="h4" gutterBottom>
+                              {tariff.name}
+                            </Typography>
+                            {isSelected && (
+                              <Typography variant="h6" color="primary">
+                                Активный
+                              </Typography>
+                            )}
+                          </Stack>
+                          <Typography variant="h5" color="textSecondary">
+                            {tariff.price} ₸ / час
+                          </Typography>
+                          <Typography
+                            variant="body2"
+                            color="textSecondary"
+                            gutterBottom
+                            whiteSpace="pre-line"
+                          >
+                            {tariff.description}
+                          </Typography>
+                          <Button
+                            variant={isSelected ? 'contained' : 'outlined'}
+                            fullWidth
+                            sx={{ mt: 2 }}
+                            onClick={async () => {
+                              setSubmitting(true);
+                              let response;
+
+                              if (isSelected) {
+                                response = await deleteTariff();
+                                if (response?.error) {
+                                  setErrors({
+                                    submit: 'Что-то пошло не так при удалении тарифа',
+                                  });
+                                  setStatus({ success: false });
+                                } else {
+                                  setFieldValue('tariff', null);
+                                  setStatus({ success: true });
+                                }
+                              } else {
+                                response = await updateTariff({ tariff_id: tariff.id });
+                                if (response?.error?.status === 409) {
+                                  setOpen(true);
+                                  setStatus({ success: false });
+                                } else if (response?.error) {
+                                  setErrors({
+                                    submit: 'Что-то пошло не так при обновлении тарифа',
+                                  });
+                                  setStatus({ success: false });
+                                } else {
+                                  setFieldValue('tariff', tariff.id);
+                                  setStatus({ success: true });
+                                }
+                              }
+                              setSubmitting(false);
+                            }}
+                            disabled={isSubmitting}
+                          >
+                            {isSelected ? 'Деактивировать' : 'Активировать'}
+                          </Button>
+                        </CardContent>
+                      </Card>
+                    </Grid>
+                  );
+                })}
             </Grid>
           </form>
         )}
       </Formik>
+
+      <Dialog
+        open={open}
+        onClose={handleClose}
+        aria-labelledby="alert-dialog-title"
+        aria-describedby="alert-dialog-description"
+      >
+        <DialogContent>
+          <DialogContentText id="alert-dialog-description">
+            У вас недостаточно средств на балансе
+          </DialogContentText>
+        </DialogContent>
+        <DialogActions>
+          <Button
+            onClick={() => {
+              handleClose();
+              dispatch(setBalanceOpen(true));
+            }}
+            autoFocus
+            color="primary"
+          >
+            Пополнить
+          </Button>
+        </DialogActions>
+      </Dialog>
     </>
   );
 };

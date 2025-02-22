@@ -51,7 +51,7 @@ const AuthProvider = ({ children }) => {
       try {
         const { access_token } = await login(credentials).unwrap();
         localStorage.setItem('authToken', access_token);
-        setIsAuthenticated(true);
+        window.location.replace('/');
         return null;
       } catch (error) {
         setIsAuthenticated(false);
@@ -80,23 +80,13 @@ const AuthProvider = ({ children }) => {
   const handleRegister = useCallback(
     async (credentials) => {
       try {
-        await register(credentials).unwrap();
-        const { access_token } = await login({
-          social_link: credentials.email,
-          password: credentials.password,
-        }).unwrap();
-        console.log(access_token);
-
-        localStorage.setItem('authToken', access_token);
-        setIsAuthenticated(true);
-        return null;
+        const { data } = await register(credentials).unwrap();
+        return data;
       } catch (error) {
-        setIsAuthenticated(false);
-        setUser(null);
         return error;
       }
     },
-    [register, login]
+    [register]
   );
 
   const value = useMemo(
