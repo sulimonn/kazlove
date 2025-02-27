@@ -8,7 +8,6 @@ import 'swiper/css';
 import 'swiper/css/scrollbar';
 // material-ui
 import { Box, Typography, Button } from '@mui/material';
-import { useGetProfilePhotosQuery } from 'store/reducers/api';
 
 const Card = ({ girl }) => {
   const [showContact, setShowContact] = React.useState(false);
@@ -16,18 +15,16 @@ const Card = ({ girl }) => {
 
   const swiperRef = React.useRef(null);
 
-  const { data = [] } = useGetProfilePhotosQuery(girl.id);
-
   React.useEffect(() => {
-    if (data.length > 0) {
+    if (girl?.photos?.length > 0) {
       setPhotos(
-        data.map((photo) => ({
+        girl.photos.map((photo) => ({
           id: photo[0],
           upload: process.env.REACT_APP_SERVER_URL + photo[1],
         }))
       );
     }
-  }, [data]);
+  }, [girl]);
 
   React.useEffect(() => {
     if (swiperRef.current) {
@@ -40,36 +37,34 @@ const Card = ({ girl }) => {
       height={'550px'}
       borderRadius={2}
       sx={{
-        background:
-          girl.promotion_level === 2
-            ? 'linear-gradient(to right, #462523 0, #cb9b51 45%,   #f6e27a 75%, #cb9b51 100%)'
-            : girl.promotion_level === 1
-              ? 'linear-gradient( to right, #2c003e 0%,rgb(62, 0, 43) 100%)'
-              : 'background.paper',
+        background: !girl.promotion_level
+          ? 'background.paper'
+          : girl.promotion_level === 1
+            ? 'linear-gradient( to right, #2c003e 0%,rgb(62, 0, 43) 100%)'
+            : 'linear-gradient(to right, #462523 0, #cb9b51 45%,   #f6e27a 75%, #cb9b51 100%)',
         border: '1px solid',
-        borderColor:
-          girl.promotion_level === 2 || girl.promotion_level === 1 ? 'transparent' : 'divider',
+        borderColor: girl.promotion_level > 0 ? 'transparent' : 'divider',
         position: 'relative',
-        boxShadow:
-          girl.promotion_level === 2
-            ? '0 4px 15px rgba(255, 215, 0, 0.5)' // VIP shadow
-            : girl.promotion_level === 1
-              ? '0 4px 15px rgba(138, 43, 226, 0.5)' // Top shadow
-              : 'none',
+        boxShadow: !girl.promotion_level
+          ? 'none' // VIP shadow
+          : girl.promotion_level === 1
+            ? '0 4px 15px rgba(138, 43, 226, 0.5)' // Top shadow
+            : '0 4px 15px rgba(255, 215, 0, 0.5)',
         '& .swiper-horizontal > .swiper-scrollbar, .swiper-scrollbar.swiper-scrollbar-horizontal': {
           top: 'var(--swiper-scrollbar-bottom, 4px)',
           bottom: 'var(--swiper-scrollbar-top, auto)',
         },
+        overflow: 'hidden',
       }}
       onMouseEnter={() => swiperRef.current.autoplay.start()} // stop autoplay on hover
       onMouseLeave={() => swiperRef.current.autoplay.stop()}
     >
-      {girl.promotion_level !== 0 && girl.tariff?.type?.name && (
+      {girl.promotion_level > 0 && girl.tariff?.type?.name && (
         <Box
           position="absolute"
           top={10}
           left={10}
-          bgcolor="gold"
+          bgcolor={girl.promotion_level === 1 ? '#8a2be2' : 'gold'}
           color="black"
           px={2}
           py={1}
@@ -78,6 +73,7 @@ const Card = ({ girl }) => {
           sx={{
             boxShadow: '0 2px 4px rgba(0,0,0,0.3)',
             transform: 'rotate(-20deg) translate(-15px, -15px)',
+            overflow: 'hidden',
           }}
         >
           <Typography variant="h4" fontWeight="bold">
@@ -96,17 +92,22 @@ const Card = ({ girl }) => {
         onSwiper={(swiper) => (swiperRef.current = swiper)}
       >
         <SwiperSlide>
-          <Link to={`/profile/${girl.id}`} style={{ textDecoration: 'none', color: 'inherit' }}>
+          <Link
+            to={`/profile/${girl.id}`}
+            style={{ textDecoration: 'none', color: 'inherit', overflow: 'hidden' }}
+          >
             <Box
               height={'400px'}
               width={'100%'}
-              sx={{ mask: 'linear-gradient(360deg, rgba(0, 0, 0, 0) 5%, rgba(0, 0, 0, 1) 20%)' }}
+              sx={{
+                mask: 'linear-gradient(360deg, rgba(0, 0, 0, 0) 5%, rgba(0, 0, 0, 1) 20%)',
+              }}
             >
               {photos && photos[0]?.upload && (
                 <img
                   src={photos[0]?.upload}
                   alt="girl"
-                  style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                  style={{ width: '100%', height: '100%', objectFit: 'cover', overflow: 'hidden' }}
                   loading="lazy"
                 />
               )}

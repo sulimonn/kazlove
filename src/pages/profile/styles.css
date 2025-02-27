@@ -7,8 +7,6 @@
   display: flex;
   justify-content: center;
   align-items: center;
-  margin-left: auto;
-  margin-right: auto;
 }
 
 .swiper-slide img {
@@ -19,8 +17,10 @@
 }
 
 .mySwiper2 {
-  height: 80%;
-  width: 90%;
+  height: 100%;
+  width: 100%;
+  margin-right: auto;
+  margin-left: auto;
 }
 
 .mySwiper {
@@ -30,7 +30,6 @@
 }
 
 .mySwiper .swiper-slide {
-  width: 25%;
   height: 100%;
   opacity: 0.4;
 }
@@ -45,4 +44,7 @@
   width: 100%;
   height: 100%;
   object-fit: cover;
+}
+.swiper {
+  width: 100%;
 }

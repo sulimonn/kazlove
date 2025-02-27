@@ -47,7 +47,7 @@ const MyProfile = () => {
   const { data: media = [], isFetching: mediaIsFetching } = useFetchMediaQuery(profile?.id || 0);
   const [deleteProfile, { isLoading: isDeleting }] = useDeleteProfileMutation();
 
-  if (!profile) return navigate('/');
+  if (!profile?.id) return navigate('/');
 
   return (
     <>
@@ -87,7 +87,7 @@ const MyProfile = () => {
               </Stack>
             </Grid>
             <Grid item xs={12}>
-              <TabPanel value="profile">
+              <TabPanel value="profile" sx={{ p: 0 }}>
                 <AnketaForm
                   profile={profile}
                   photos={

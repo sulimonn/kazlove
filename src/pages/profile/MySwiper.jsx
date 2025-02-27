@@ -65,86 +65,105 @@ export default function MySwiper({ photos = [], media = [] }) {
   return (
     <>
       {typeof thumbsSwiper === 'object' && (
-        <Swiper
-          style={{
-            '--swiper-navigation-color': '#fff',
-            '--swiper-pagination-color': '#fff',
-            '--swiper-navigation-sides-offset': 0,
+        <Box
+          sx={{
+            height: { xs: 450, md: 500 },
+            width: { xs: '100%', md: 400 },
           }}
-          spaceBetween={10}
-          navigation={true}
-          thumbs={{ swiper: thumbsSwiper }}
-          modules={[FreeMode, Navigation, Thumbs, Autoplay]}
-          autoplay={{ delay: 6000, disableOnInteraction: false }}
-          className="mySwiper2"
         >
-          {photos.map((photo) => (
-            <SwiperSlide key={photo?.id}>
-              <Box
-                sx={{
-                  width: '80%',
-                  mx: 'auto',
-                  height: '100%',
-                  overflow: 'hidden',
-                }}
-              >
-                <img
-                  src={photo?.upload}
-                  alt="girl img"
-                  style={{
-                    objectFit: isFullScreen ? 'contain' : 'cover',
-                  }}
-                  onClick={handleFullScreen}
-                />
-              </Box>
-            </SwiperSlide>
-          ))}
-          {media?.map((video, i) => {
-            if (!video?.upload) return null;
-            return (
-              <SwiperSlide key={i} style={{ position: 'relative' }}>
+          <Swiper
+            style={{
+              '--swiper-navigation-color': '#fff',
+              '--swiper-pagination-color': '#fff',
+              '--swiper-navigation-sides-offset': '0px',
+              ' & .swiper-horizontal': {
+                height: 300,
+                width: 400,
+              },
+            }}
+            spaceBetween={10}
+            navigation={true}
+            thumbs={{ swiper: thumbsSwiper }}
+            modules={[FreeMode, Navigation, Thumbs, Autoplay]}
+            autoplay={{ delay: 6000, disableOnInteraction: false }}
+            className="mySwiper2"
+          >
+            {photos.map((photo) => (
+              <SwiperSlide key={photo?.id}>
                 <Box
                   sx={{
-                    display: 'flex',
-                    justifyContent: 'center',
-                    alignItems: 'center',
-                    minWidth: '250px',
-                    maxWidth: { xs: '250px', sm: '300px' },
-                    height: { xs: '350px', sm: '400px' },
+                    width: '100%',
                     mx: 'auto',
+                    height: '100%',
                     overflow: 'hidden',
                   }}
                 >
-                  <video
-                    src={video.upload}
-                    alt="video"
-                    loading="lazy"
+                  <img
+                    src={photo?.upload}
+                    alt="girl img"
                     style={{
-                      width: 'fit-content',
-                      height: '100%',
                       objectFit: isFullScreen ? 'contain' : 'cover',
                     }}
                     onClick={handleFullScreen}
                   />
                 </Box>
               </SwiperSlide>
-            );
-          })}
-        </Swiper>
+            ))}
+            {media?.map((video, i) => {
+              if (!video?.upload) return null;
+              return (
+                <SwiperSlide key={i} style={{ position: 'relative', height: '100%' }}>
+                  <Box
+                    sx={{
+                      display: 'flex',
+                      justifyContent: 'center',
+                      alignItems: 'center',
+                      minWidth: '250px',
+                      maxWidth: { xs: '250px', sm: '300px' },
+                      height: { xs: '350px', sm: '400px' },
+                      mx: 'auto',
+                      overflow: 'hidden',
+                    }}
+                  >
+                    <video
+                      src={video.upload}
+                      alt="video"
+                      loading="lazy"
+                      style={{
+                        width: 'fit-content',
+                        height: '100%',
+                        objectFit: isFullScreen ? 'contain' : 'cover',
+                      }}
+                      onClick={handleFullScreen}
+                    />
+                  </Box>
+                </SwiperSlide>
+              );
+            })}
+          </Swiper>
+        </Box>
       )}
 
       <Swiper
         onSwiper={setThumbsSwiper}
-        spaceBetween={10}
+        spaceBetween={1}
         slidesPerView={3}
         freeMode={true}
         watchSlidesProgress={true}
         modules={[FreeMode, Navigation, Thumbs]}
         className="mySwiper"
+        style={{
+          height: 145,
+        }}
       >
         {photos.map((photo) => (
-          <SwiperSlide key={photo?.id}>
-            <img src={photo?.upload} alt="girl img" loading="lazy" />
+          <SwiperSlide key={photo?.id} style={{ height: '100%', width: 145 }}>
+            <img
+              src={photo?.upload}
+              alt="girl img"
+              loading="lazy"
+              style={{ width: 145, height: '100%', objectFit: 'cover' }}
+            />
           </SwiperSlide>
         ))}
         {media?.map((video) => (

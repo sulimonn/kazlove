@@ -17,9 +17,14 @@ import {
   TableContainer,
   TableHead,
   TableRow,
+  Accordion,
+  AccordionSummary,
+  AccordionDetails,
 } from '@mui/material';
 import RefreshIcon from '@mui/icons-material/Refresh';
 import CloseIcon from '@mui/icons-material/Close';
+import ArrowDropDownIcon from '@mui/icons-material/ArrowDropDown';
+
 import {
   useCreateTradeMutation,
   useGetBalanceQuery,
@@ -62,19 +67,50 @@ const BalanceComp = () => {
       <IconButton onClick={refetchBalance}>
         <RefreshIcon />
       </IconButton>
-      <Dialog onClose={() => dispatch(setBalanceOpen(false))} open={balanceOpen}>
+      <Dialog
+        onClose={() => dispatch(setBalanceOpen(false))}
+        open={balanceOpen}
+        fullWidth
+        maxWidth="md"
+      >
         <DialogTitle
           justifyContent="space-between"
           display="flex"
           alignItems="center"
           id="customized-dialog-title"
         >
-          Действия с балансом
+          <Typography variant="h5">Действия с балансом</Typography>
           <IconButton aria-label="close" onClick={() => dispatch(setBalanceOpen(false))}>
             <CloseIcon />
           </IconButton>
         </DialogTitle>
         <DialogContent display="flex" direction="column" dividers>
+          <Accordion>
+            <AccordionSummary
+              expandIcon={<ArrowDropDownIcon />}
+              aria-controls="panel1-content"
+              id="panel1-header"
+            >
+              <Typography variant="h6">❗️ Важно!</Typography>
+            </AccordionSummary>
+            <AccordionDetails>
+              <Typography variant="body2" align="justify">
+                ❗️ Внимание! Заявки обрабатываются автоматически по точным суммам – этим занимается
+                робот, а не люди. Просим донести до всех клиентов: оплату необходимо производить
+                строго на указанную сумму в течение 30 минут после открытия заявки.
+                <br /> ⚠️ Если сумма платежа окажется неточной, есть высокая вероятность, что деньги
+                автоматически
+                <br />
+                зачислятся другому человеку, и исправить это будет невозможно!
+                <br /> Чтобы избежать проблем:
+                <Stack pl={2} mt={0}>
+                  ✅ Оплачивайте точную сумму со всеми копейками в течение 30 минут. <br />❌ Если
+                  сумма неверная – сначала обратитесь в бота, а при необходимости уже к нам. <br />
+                  ❗️Просим отнестись к этому серьезно!
+                </Stack>
+              </Typography>
+            </AccordionDetails>
+          </Accordion>
           <Stack direction="column">
             <Stack minHeight="40vh" maxHeight="40vh" overflow="auto">
               <Button onClick={refetchTrades}>показать открытые сделки</Button>

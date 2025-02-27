@@ -79,11 +79,7 @@ const Home = () => {
             ...girl.tariff,
             type: tariffTypes.find((t) => t.id === girl.tariff.type),
           },
-          promotion_level: tariffTypes.find((t) => {
-            console.log(t, girl.tariff.type);
-
-            return t.id === girl.tariff.type;
-          })?.promotion_level,
+          promotion_level: tariffTypes.find((t) => t.id === girl.tariff.type)?.promotion_level,
         }));
       const promotionTop = shufflePerPromotionLevel(
         filteredGirls.filter((girl) => {
@@ -91,7 +87,9 @@ const Home = () => {
         })
       );
 
-      let promotionStn = filteredGirls.filter((girl) => girl.promotion_level === 0);
+      let promotionStn = filteredGirls.filter(
+        (girl) => !girl.promotion_level && girl.city?.id === city
+      );
 
       if (typeof city === 'number' && city > 0) {
         promotionStn = promotionStn.filter((girl) => girl.city?.id === city);
@@ -104,8 +102,10 @@ const Home = () => {
       }
 
       if (services.length > 0) {
+        const selectedServiceIds = services.map((s) => s.id);
+
         promotionStn = promotionStn.filter((girl) =>
-          services.map((s) => parseInt(s.id)).includes(girl.profile_type?.id)
+          girl.services.some((service) => selectedServiceIds.includes(service.id))
         );
       }
 
@@ -123,6 +123,7 @@ const Home = () => {
 
       if (age.length > 0) {
         promotionStn = promotionStn.filter((girl) => girl.age >= age[0] && girl.age <= age[1]);
+        console.log(promotionStn);
       }
 
       if (price.length > 0) {
@@ -141,24 +142,39 @@ const Home = () => {
       promotionStn = !sortOption?.id
         ? shufflePerPromotionLevel(promotionStn)
         : sortOption?.option === 'asc'
-          ? [...promotionStn].sort((a, b) => {
-              if (a[sortOption.id] > b[sortOption.id]) {
-                return -1;
-              }
+          ? [...promotionStn].sort((a, b) => (a[sortOption.id] > b[sortOption.id] ? -1 : 1))
+          : [...promotionStn].sort((a, b) => (a[sortOption.id] > b[sortOption.id] ? 1 : -1));
 
-              return 1;
-            })
-          : [...promotionStn].sort((a, b) => {
-              if (a[sortOption.id] > b[sortOption.id]) {
-                return 1;
-              }
-
-              return -1;
-            });
+      const remainingStn = !sortOption?.id
+        ? shufflePerPromotionLevel(
+            filteredGirls.filter(
+              (girl) =>
+                !promotionStn.includes(girl) &&
+                !promotionTop.includes(girl) &&
+                girl.city?.id === city
+            )
+          )
+        : sortOption?.option === 'asc'
+          ? [
+              ...filteredGirls.filter(
+                (girl) =>
+                  !promotionStn.includes(girl) &&
+                  !promotionTop.includes(girl) &&
+                  girl.city?.id === city
+              ),
+            ].sort((a, b) => (a[sortOption.id] > b[sortOption.id] ? -1 : 1))
+          : [
+              ...filteredGirls.filter(
+                (girl) =>
+                  !promotionStn.includes(girl) &&
+                  !promotionTop.includes(girl) &&
+                  girl.city?.id === city
+              ),
+            ].sort((a, b) => (a[sortOption.id] > b[sortOption.id] ? 1 : -1));
 
       const remainingTop = shufflePerPromotionLevel(
         filteredGirls.filter(
-          (girl) => girl.promotion_level !== 0 && girl.city?.id !== city && city >= 0
+          (girl) => girl.promotion_level > 0 && girl.city?.id !== city && city >= 0
         )
       );
 
@@ -166,7 +182,8 @@ const Home = () => {
         (girl) =>
           !promotionStn.includes(girl) &&
           !remainingTop.includes(girl) &&
-          !promotionTop.includes(girl)
+          !promotionTop.includes(girl) &&
+          girl.city?.id !== city
       );
 
       remainingGirls = !sortOption?.id
@@ -192,9 +209,13 @@ const Home = () => {
             });
 
       // Combine all arrays in the desired order
-      const finalGirls = [...promotionTop, ...promotionStn, ...remainingTop, ...remainingGirls];
-
-      //const finalGirls = [...promotionStn, ...remainingGirls];
+      const finalGirls = [
+        ...promotionTop,
+        ...promotionStn,
+        ...remainingStn,
+        ...remainingTop,
+        ...remainingGirls,
+      ];
 
       // Update state
       setGirls(finalGirls);

@@ -1,6 +1,6 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import { Navigation, Pagination, A11y } from 'swiper/modules';
+import { Navigation, Pagination, A11y, Scrollbar, Autoplay } from 'swiper/modules';
 
 import { Swiper, SwiperSlide } from 'swiper/react';
 
@@ -75,111 +75,47 @@ const MySwiper = ({ photos = [], setPhotos, media, setMedia, ...props }) => {
   };
 
   return (
-    <Box maxWidth={{ xs: '370px', sm: '700px' }} width="100%" mx="auto">
+    <Box
+      width="100%"
+      sx={{
+        '& .swiper-slide': {
+          display: 'flex',
+          justifyContent: 'center',
+        },
+      }}
+    >
       <Swiper
-        modules={[Navigation, Pagination, A11y]}
-        spaceBetween={20}
-        slidesPerView={1}
+        modules={[Navigation, Pagination, A11y, Scrollbar, Autoplay]}
         navigation
         pagination={{ clickable: true }}
+        scrollbar={{ draggable: true }}
+        slidesPerView="auto"
+        spaceBetween={10}
+        breakpoints={{
+          320: { slidesPerView: 1 },
+          640: { slidesPerView: 2 },
+          1024: { slidesPerView: 3 },
+          1280: { slidesPerView: 4 },
+        }}
       >
-        {photos.map((photo, i) => {
-          if (!photo?.upload) return null;
-          return (
-            <SwiperSlide key={i} style={{ position: 'relative' }}>
-              <IconButton
-                onClick={() => handleDeletePhoto(photos[i].id)}
-                sx={{ position: 'absolute', top: '2%', right: '2%' }}
-              >
-                <Delete size="large" />
-              </IconButton>
-
-              <Box
-                sx={{
-                  display: 'flex',
-                  justifyContent: 'center',
-                  alignItems: 'center',
-                  minWidth: '250px',
-                  maxWidth: { xs: '250px', sm: '300px' },
-                  height: { xs: '350px', sm: '400px' },
-                  mx: 'auto',
-                  overflow: 'hidden',
-                }}
-              >
-                <img
-                  src={createPreview(photo.upload)}
-                  alt="img"
-                  loading="lazy"
-                  style={{
-                    width: 'auto',
-                    height: '100%',
-                    objectFit: isFullScreen ? 'contain' : 'cover',
-                  }}
-                  onClick={handleFullScreen}
-                />
-              </Box>
-            </SwiperSlide>
-          );
-        })}
-
-        {media.map((video, i) => {
-          if (!video?.upload) return null;
-          return (
-            <SwiperSlide key={i} style={{ position: 'relative' }}>
-              <IconButton
-                onClick={() => handleDeletePhoto(media[i].id)}
-                sx={{ position: 'absolute', top: '2%', right: '2%' }}
-              >
-                <Delete size="large" />
-              </IconButton>
-
-              <Box
-                sx={{
-                  display: 'flex',
-                  justifyContent: 'center',
-                  alignItems: 'center',
-                  minWidth: '250px',
-                  maxWidth: { xs: '250px', sm: '300px' },
-                  height: { xs: '350px', sm: '400px' },
-                  mx: 'auto',
-                  overflow: 'hidden',
-                }}
-              >
-                <video
-                  src={createPreview(video.upload)}
-                  alt="img"
-                  loading="lazy"
-                  style={{
-                    width: 'fit-content',
-                    height: '100%',
-                    objectFit: isFullScreen ? 'contain' : 'cover',
-                  }}
-                  onClick={handleFullScreen}
-                />
-              </Box>
-            </SwiperSlide>
-          );
-        })}
-
         <SwiperSlide>
           <Stack
             direction="column"
-            justifyContent="stretch"
+            justifyContent="center"
             alignItems="center"
-            sx={{ height: { xs: '350px', sm: '400px' } }}
+            sx={{ height: '350px', width: '256px' }}
           >
             <Box
               sx={{
                 display: 'flex',
                 justifyContent: 'center',
                 alignItems: 'center',
-                minWidth: '250px',
-                maxWidth: { xs: '250px', sm: '300px' },
-                height: '100%',
-                mx: 'auto',
                 overflow: 'hidden',
-                backgroundColor: 'secondary.light',
-                opacity: 0.7,
+                width: '250px',
+                height: '350px',
+                border: '1px solid #ccc',
+                borderTopLeftRadius: '5px',
+                borderTopRightRadius: '5px',
               }}
             >
               <Button
@@ -220,7 +156,7 @@ const MySwiper = ({ photos = [], setPhotos, media, setMedia, ...props }) => {
                   multiple
                   ref={imageRef}
                 />
-                Добавить фото
+                фото
               </Button>
             </Box>
             <Box
@@ -228,13 +164,12 @@ const MySwiper = ({ photos = [], setPhotos, media, setMedia, ...props }) => {
                 display: 'flex',
                 justifyContent: 'center',
                 alignItems: 'center',
-                minWidth: '250px',
-                maxWidth: { xs: '250px', sm: '300px' },
-                height: '100%',
-                mx: 'auto',
                 overflow: 'hidden',
-                backgroundColor: 'primary.light',
-                opacity: 0.7,
+                width: '250px',
+                height: '350px',
+                border: '1px solid #ccc',
+                borderBottomRightRadius: '5px',
+                borderBottomLeftRadius: '5px',
               }}
             >
               <Button
@@ -271,11 +206,103 @@ const MySwiper = ({ photos = [], setPhotos, media, setMedia, ...props }) => {
                   }}
                   ref={mediaRef}
                 />
-                Добавить видео
+                видео
               </Button>
             </Box>
           </Stack>
         </SwiperSlide>
+        {photos.map((photo, i) => {
+          if (!photo?.upload) return null;
+          return (
+            <SwiperSlide
+              key={i}
+              style={{
+                position: 'relative',
+                width: '250px',
+                height: '350px',
+                display: 'flex',
+                justifyContent: 'center',
+              }}
+            >
+              <IconButton
+                onClick={() => handleDeletePhoto(photos[i].id)}
+                sx={{ position: 'absolute', top: '2%', right: '2%' }}
+                variant="contained"
+                color="error"
+              >
+                <Delete size="large" />
+              </IconButton>
+
+              <Box
+                sx={{
+                  display: 'flex',
+                  justifyContent: 'center',
+                  alignItems: 'center',
+                  overflow: 'hidden',
+                  width: '250px',
+                  height: '350px',
+                  border: '1px solid #ccc',
+                  borderRadius: '5px',
+                }}
+              >
+                <img
+                  src={createPreview(photo.upload)}
+                  alt="img"
+                  loading="lazy"
+                  style={{
+                    width: '100%',
+                    height: '100%',
+                    objectFit: 'cover',
+                  }}
+                  onClick={handleFullScreen}
+                />
+              </Box>
+            </SwiperSlide>
+          );
+        })}
+
+        {media.map((video, i) => {
+          if (!video?.upload) return null;
+          return (
+            <SwiperSlide
+              key={i}
+              style={{ position: 'relative', display: 'flex', justifyContent: 'center' }}
+            >
+              <IconButton
+                onClick={() => handleDeletePhoto(media[i].id)}
+                sx={{ position: 'absolute', top: '2%', right: '2%' }}
+              >
+                <Delete size="large" />
+              </IconButton>
+
+              <Box
+                sx={{
+                  display: 'flex',
+                  justifyContent: 'center',
+                  alignItems: 'center',
+                  overflow: 'hidden',
+                  width: '250px',
+                  height: '350px',
+                  border: '1px solid #ccc',
+                  borderRadius: '5px',
+                  mx: 'auto',
+                }}
+              >
+                <video
+                  src={createPreview(video.upload)}
+                  alt="img"
+                  loading="lazy"
+                  style={{
+                    width: 'fit-content',
+                    height: '100%',
+                    objectFit: isFullScreen ? 'contain' : 'cover',
+                  }}
+                  onClick={handleFullScreen}
+                />
+              </Box>
+            </SwiperSlide>
+          );
+        })}
       </Swiper>
     </Box>
   );

@@ -5,15 +5,15 @@ import { useSelector, useDispatch } from 'react-redux';
 import { Menu, Box, Typography } from '@mui/material';
 import FilterItem from './FilterItem';
 import FilterSlider from './FilterSlider';
-import { useFetchServicesQuery } from 'store/reducers/api';
-import Autocomplete from 'pages/authentication/auth-forms/Autocomplete';
+import { useFetchTypesQuery } from 'store/reducers/api';
 import { setServices } from 'store/reducers/action';
 import Loader from 'components/Loader';
+import ServiceSelect from './ServiceSelect';
 
 const FilterMenu = ({ anchorEl, open, handleClose }) => {
-  const { services: defaultServices } = useSelector((state) => state.action);
+  const { services: selectedServices } = useSelector((state) => state.action);
   const { filter: filters } = useSelector((state) => state.catalog);
-  const { data: services = [], isFetching: isFetchingServices } = useFetchServicesQuery();
+  const { data: serviceTypes = [], isFetching: isFetchingServices } = useFetchTypesQuery();
   const dispatch = useDispatch();
 
   const handleServiceChange = (event) => {
@@ -74,7 +74,7 @@ const FilterMenu = ({ anchorEl, open, handleClose }) => {
         </Box>
       ))}
 
-      {services.length > 0 && (
+      {serviceTypes.length > 0 && (
         <Box
           sx={{
             maxWidth: '400px',
@@ -90,10 +90,10 @@ const FilterMenu = ({ anchorEl, open, handleClose }) => {
             Услуги
           </Typography>
           <Box display="flex" flexWrap="wrap" gap={1} width="100%" alignItems="stretch">
-            <Autocomplete
-              value={defaultServices}
-              values={services || []}
-              setValues={handleServiceChange}
+            <ServiceSelect
+              servicesTypes={serviceTypes}
+              handleServiceChange={handleServiceChange}
+              selectedServices={selectedServices}
             />
           </Box>
         </Box>

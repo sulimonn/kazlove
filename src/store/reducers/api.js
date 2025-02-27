@@ -47,7 +47,7 @@ const api = apiSlice.injectEndpoints({
       providesTags: ['City'],
     }),
     fetchTypes: builder.query({
-      query: () => '/profile_types/all',
+      query: () => '/service_types/all',
       providesTags: ['Type'],
     }),
     fetchServices: builder.query({

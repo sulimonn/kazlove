@@ -4,22 +4,28 @@ import { useNavigate } from 'react-router-dom';
 import {
   Button,
   FormHelperText,
-  Grid,
+  Stack,
   InputLabel,
   OutlinedInput,
-  Stack,
   Select,
   MenuItem,
   TextField,
+  FormGroup,
+  FormControlLabel,
+  Checkbox,
+  Typography,
+  Divider,
+  Accordion,
+  AccordionSummary,
+  AccordionDetails,
 } from '@mui/material';
-import CloseIcon from '@mui/icons-material/Close';
 
 // third party
 import * as Yup from 'yup';
 import { Formik } from 'formik';
 
 // project import
-import AnimateButton from 'components/@extended/AnimateButton';
+import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import {
   useAddServiceMutation,
   useDeleteMediaMutation,
@@ -28,16 +34,15 @@ import {
   useEditProfileMutation,
   useFetchCitiesQuery,
   useFetchGendersQuery,
-  useFetchServicesQuery,
   useFetchTypesQuery,
   usePostMediaMutation,
   usePostPhotosMutation,
   usePostProfileMutation,
+  useUpdateServiceMutation,
 } from 'store/reducers/api';
 import { useAuth } from 'contexts/index';
 import Pictures from './Pictures';
 import Loader from 'components/Loader';
-import Services from './Services';
 import { useEditUserMutation } from 'store/reducers/users';
 
 // assets
@@ -57,7 +62,7 @@ const AnketaForm = ({
   const [editProfile, { isLoading: isEditing }] = useEditProfileMutation();
   const [addService, { isLoading: isAdding }] = useAddServiceMutation();
   const [editUser] = useEditUserMutation();
-  const [updateService, { isLoading: isUpdating }] = useAddServiceMutation();
+  const [updateService, { isLoading: isUpdating }] = useUpdateServiceMutation();
   const [deleteService, { isLoading: isDeleting }] = useDeleteServiceMutation();
   const [postPhotos, { isLoading: isPostingPhotos }] = usePostPhotosMutation();
   const [deletePhoto, { isLoading: isDeletingPhoto }] = useDeleteProfilePhotoMutation();
@@ -66,8 +71,7 @@ const AnketaForm = ({
 
   const { data: cities = [] } = useFetchCitiesQuery();
   const { data: genders = [] } = useFetchGendersQuery();
-  const { data: types = [] } = useFetchTypesQuery();
-  const { data: servicesData } = useFetchServicesQuery();
+  const { data: servicesTypes = [] } = useFetchTypesQuery();
 
   const [photos, setPhotos] = React.useState(initialPhotos);
   const [media, setMedia] = React.useState(initialMedia);
@@ -115,18 +119,18 @@ const AnketaForm = ({
           ...profile,
           city: profile?.city?.id || '',
           gender: profile?.gender?.id || '',
-          profile_type: profile?.profile_type?.id || '',
           photos: initialPhotos,
           media: initialMedia,
+
+          telegram: user?.twitter_link,
+          whatsapp: user?.facebook_link,
           submit: null,
         }}
         validationSchema={Yup.object().shape({
           services: Yup.array()
             .of(
               Yup.object().shape({
-                price: Yup.number()
-                  .typeError('Цена должна быть числом')
-                  .required('Цена обязательна'),
+                price: Yup.string(),
               })
             )
             .min(1, 'Услуги обязательны')
@@ -135,7 +139,6 @@ const AnketaForm = ({
           phone: Yup.string().max(255).required('Телефон обязателен'),
           telegram: Yup.string().max(255),
           whatsapp: Yup.string().max(255),
-          profile_type: Yup.string().max(255).required('Тип обязателен'),
           gender: Yup.string().max(255).required('Пол обязателен'),
           age: Yup.number()
             .min(18, 'Минимальный возраст 18 лет')
@@ -168,6 +171,12 @@ const AnketaForm = ({
                 submit: 'Минимальное количество фото 3',
                 photos: 'Минимальное количество фото 3',
               });
+            } else if (values.services.length < 1) {
+              setStatus({ success: false });
+              setErrors({
+                submit: 'Услуги обязательны',
+                services: 'Добавьте хотя бы одну услугу',
+              });
             } else {
               const profileData = {
                 ...values,
@@ -183,6 +192,7 @@ const AnketaForm = ({
               const addServices = async (profile_id) => {
                 const allServices = profile?.services || [];
                 const selectedServices = services || [];
+                console.log(allServices, selectedServices);
 
                 const forUpdate = selectedServices
                   .filter((item) =>
@@ -209,6 +219,7 @@ const AnketaForm = ({
                     profile_id: profile_id,
                     price: item.price,
                   }));
+                console.log(forAdd);
 
                 const forDelete = allServices
                   .filter((service) => !selectedServices.find((item) => item.id === service.id))
@@ -351,15 +362,23 @@ const AnketaForm = ({
           setFieldValue,
         }) => (
           <form noValidate onSubmit={handleSubmit}>
-            <Grid container spacing={3}>
-              <Grid item xs={12} md={5}>
+            <Stack container spacing={6} my={4}>
+              <Stack item xs={12}>
                 <Stack
                   spacing={3}
                   direction="column"
                   height="100%"
                   justifyContent="space-between"
-                  alignItems="center"
+                  alignItems="left"
+                  sx={{
+                    border: '1px solid #ccc',
+                    borderRadius: '10px',
+                    padding: '20px',
+                  }}
                 >
+                  <Typography variant="h4">Фото и видео*</Typography>
+                  <Divider />
+                  <Typography variant="body2">Загрузите фото и видео</Typography>
                   <Pictures
                     photos={photos}
                     setPhotos={setPhotos}
@@ -373,11 +392,22 @@ const AnketaForm = ({
                     </FormHelperText>
                   )}
                 </Stack>
-              </Grid>
-              <Grid item xs={12} md={7}>
-                <Grid container spacing={3}>
-                  <Grid item xs={12} md={6}>
-                    <Stack spacing={1}>
+              </Stack>
+              <Stack
+                spacing={1}
+                sx={{
+                  border: '1px solid #ccc',
+                  borderRadius: '10px',
+                  padding: '20px',
+                }}
+              >
+                <Typography variant="h4" mb={3}>
+                  Обо мне*
+                </Typography>
+                <Divider sx={{ mt: 6 }} />
+                <Stack container spacing={3}>
+                  <Stack container spacing={3} direction="row" justifyContent="center">
+                    <Stack spacing={1} sx={{ width: '70%' }}>
                       <InputLabel htmlFor="name-signup">Имя*</InputLabel>
                       <OutlinedInput
                         id="name-login"
@@ -396,100 +426,118 @@ const AnketaForm = ({
                         </FormHelperText>
                       )}
                     </Stack>
-                  </Grid>
-                  <Grid item xs={12} md={6}>
-                    <Stack spacing={1}>
-                      <InputLabel htmlFor="name-signup">Телефон*</InputLabel>
+
+                    <Stack spacing={1} sx={{ width: '30%' }}>
+                      <InputLabel htmlFor="name-signup">Возраст*</InputLabel>
                       <OutlinedInput
-                        id="phone-login"
-                        type="phone"
-                        value={values.phone || ''}
-                        name="phone"
+                        id="age-login"
+                        type="number"
+                        value={values.age || ''}
+                        name="age"
                         onBlur={handleBlur}
                         onChange={handleChange}
-                        placeholder="+7 (999) 999-99-99"
+                        placeholder="20"
+                        inputProps={{ inputMode: 'numeric', pattern: '[0-9]*', min: 18 }}
                         fullWidth
-                        error={Boolean(touched.phone && errors.phone)}
+                        error={Boolean(touched.age && errors.age)}
                       />
-                      {touched.phone && errors.phone && (
-                        <FormHelperText error id="helper-text-phone-signup">
-                          {errors.phone}
+                      {touched.age && errors.age && (
+                        <FormHelperText error id="helper-text-age-signup">
+                          {errors.age}
                         </FormHelperText>
                       )}
                     </Stack>
-                  </Grid>
-                  <Grid item xs={12} md={6}>
-                    <Stack spacing={1}>
-                      <InputLabel htmlFor="name-login">Телеграм</InputLabel>
+                  </Stack>
+                </Stack>
+
+                <Stack item xs={12}>
+                  <Stack spacing={1}>
+                    <InputLabel htmlFor="decription-form">О себе*</InputLabel>
+                    <TextField
+                      id="decription-form"
+                      type="text"
+                      value={values.additional_info}
+                      name="additional_info"
+                      onBlur={handleBlur}
+                      onChange={handleChange}
+                      placeholder="Напишите что-нибудь о себе"
+                      fullWidth
+                      multiline
+                      rows={4}
+                      error={Boolean(touched.additional_info && errors.additional_info)}
+                    />
+                    {touched.additional_info && errors.additional_info && (
+                      <FormHelperText error id="helper-text-additional_info-form">
+                        {errors.additional_info}
+                      </FormHelperText>
+                    )}
+                  </Stack>
+                </Stack>
+                <Stack direction="column" spacing={3}>
+                  <Stack direction="row" spacing={3}>
+                    <Stack spacing={1} sx={{ width: '40%' }}>
+                      <InputLabel htmlFor="name-signup">Рост*</InputLabel>
                       <OutlinedInput
-                        id="name-login"
-                        type="text"
-                        value={values.telegram || ''}
-                        name="telegram"
+                        id="height-login"
+                        type="number"
+                        value={values.height || ''}
+                        name="height"
                         onBlur={handleBlur}
                         onChange={handleChange}
-                        placeholder="@username"
+                        placeholder="170"
                         fullWidth
-                        error={Boolean(touched.telegram && errors.telegram)}
+                        inputProps={{ inputMode: 'numeric', pattern: '[0-9]*', min: 18 }}
+                        error={Boolean(touched.height && errors.height)}
                       />
-                      {touched.telegram && errors.telegram && (
-                        <FormHelperText error id="helper-text-telegram-signup">
-                          {errors.telegram}
+                      {touched.height && errors.height && (
+                        <FormHelperText error id="helper-text-height-signup">
+                          {errors.height}
                         </FormHelperText>
                       )}
                     </Stack>
-                  </Grid>
-                  <Grid item xs={12} md={6}>
-                    <Stack spacing={1}>
-                      <InputLabel htmlFor="whatsapp-login">Whatsapp</InputLabel>
+                    <Stack spacing={1} sx={{ width: '40%' }}>
+                      <InputLabel htmlFor="name-signup">Вес*</InputLabel>
                       <OutlinedInput
-                        id="whatsapp-login"
-                        type="phone"
-                        value={values.whatsapp || ''}
-                        name="whatsapp"
+                        id="weight-login"
+                        type="number"
+                        value={values.weight || ''}
+                        name="weight"
                         onBlur={handleBlur}
                         onChange={handleChange}
-                        placeholder="+7 (999) 999-99-99"
+                        placeholder="45"
                         fullWidth
-                        error={Boolean(touched.whatsapp && errors.whatsapp)}
+                        error={Boolean(touched.weight && errors.weight)}
+                        inputProps={{ inputMode: 'numeric', pattern: '[0-9]*', min: 18 }}
                       />
-                      {touched.whatsapp && errors.whatsapp && (
-                        <FormHelperText error id="helper-text-whatsapp-signup">
-                          {errors.whatsapp}
+                      {touched.weight && errors.weight && (
+                        <FormHelperText error id="helper-text-weight-signup">
+                          {errors.weight}
                         </FormHelperText>
                       )}
                     </Stack>
-                  </Grid>
-                  <Grid item xs={12} md={6}>
-                    <Stack spacing={1}>
-                      <InputLabel id="profile_type-label">Тип</InputLabel>
-                      <Select
-                        sx={{
-                          '& .MuiList-root': { backgroundColor: 'background.default' },
-                        }}
-                        labelId="profile_type-label"
-                        id="profile_type"
-                        value={values.profile_type || ''}
-                        label="Тип"
-                        onChange={handleChange}
-                        name="profile_type"
+                    <Stack spacing={1} sx={{ width: '20%' }}>
+                      <InputLabel htmlFor="name-signup">Размер груди*</InputLabel>
+                      <OutlinedInput
+                        id="breast_size-login"
+                        type="number"
+                        value={values.breast_size || ''}
+                        name="breast_size"
                         onBlur={handleBlur}
-                      >
-                        {types.map((item) => (
-                          <MenuItem key={item.id} value={item.id}>
-                            {item.name}
-                          </MenuItem>
-                        ))}
-                      </Select>
-                      {touched.profile_type && errors.profile_type && (
-                        <FormHelperText error id="helper-text-type-signup">
-                          {errors.profile_type}
+                        onChange={handleChange}
+                        placeholder="2"
+                        fullWidth
+                        inputProps={{ inputMode: 'numeric', pattern: '[0-9]*', min: 0 }}
+                        error={Boolean(touched.breast_size && errors.breast_size)}
+                      />
+                      {touched.breast_size && errors.breast_size && (
+                        <FormHelperText error id="helper-text-breast_size-signup">
+                          {errors.breast_size}
                         </FormHelperText>
                       )}
                     </Stack>
-                  </Grid>
-                  <Grid item xs={12} md={6}>
-                    <Stack spacing={1}>
+                  </Stack>
+                  <Stack direction={{ xs: 'column', md: 'row' }} spacing={3}>
+                    <Stack spacing={1} sx={{ width: { xs: '100%', md: '50%' } }}>
                       <InputLabel id="gender-label">Категория*</InputLabel>
                       <Select
                         sx={{
@@ -514,97 +562,7 @@ const AnketaForm = ({
                         </FormHelperText>
                       )}
                     </Stack>
-                  </Grid>
-                  <Grid item xs={5} md={3}>
-                    <Stack spacing={1}>
-                      <InputLabel htmlFor="name-signup">Рост*</InputLabel>
-                      <OutlinedInput
-                        id="height-login"
-                        type="number"
-                        value={values.height || ''}
-                        name="height"
-                        onBlur={handleBlur}
-                        onChange={handleChange}
-                        placeholder="170"
-                        fullWidth
-                        inputProps={{ inputMode: 'numeric', pattern: '[0-9]*', min: 18 }}
-                        error={Boolean(touched.height && errors.height)}
-                      />
-                      {touched.height && errors.height && (
-                        <FormHelperText error id="helper-text-height-signup">
-                          {errors.height}
-                        </FormHelperText>
-                      )}
-                    </Stack>
-                  </Grid>
-                  <Grid item xs={4} md={3}>
-                    <Stack spacing={1}>
-                      <InputLabel htmlFor="name-signup">Вес*</InputLabel>
-                      <OutlinedInput
-                        id="weight-login"
-                        type="number"
-                        value={values.weight || ''}
-                        name="weight"
-                        onBlur={handleBlur}
-                        onChange={handleChange}
-                        placeholder="45"
-                        fullWidth
-                        error={Boolean(touched.weight && errors.weight)}
-                        inputProps={{ inputMode: 'numeric', pattern: '[0-9]*', min: 18 }}
-                      />
-                      {touched.weight && errors.weight && (
-                        <FormHelperText error id="helper-text-weight-signup">
-                          {errors.weight}
-                        </FormHelperText>
-                      )}
-                    </Stack>
-                  </Grid>{' '}
-                  <Grid item xs={3}>
-                    <Stack spacing={1}>
-                      <InputLabel htmlFor="name-signup">Размер груди*</InputLabel>
-                      <OutlinedInput
-                        id="breast_size-login"
-                        type="number"
-                        value={values.breast_size || ''}
-                        name="breast_size"
-                        onBlur={handleBlur}
-                        onChange={handleChange}
-                        placeholder="2"
-                        fullWidth
-                        inputProps={{ inputMode: 'numeric', pattern: '[0-9]*', min: 0 }}
-                        error={Boolean(touched.breast_size && errors.breast_size)}
-                      />
-                      {touched.breast_size && errors.breast_size && (
-                        <FormHelperText error id="helper-text-breast_size-signup">
-                          {errors.breast_size}
-                        </FormHelperText>
-                      )}
-                    </Stack>
-                  </Grid>
-                  <Grid item xs={4} md={3}>
-                    <Stack spacing={1}>
-                      <InputLabel htmlFor="name-signup">Возраст*</InputLabel>
-                      <OutlinedInput
-                        id="age-login"
-                        type="number"
-                        value={values.age || ''}
-                        name="age"
-                        onBlur={handleBlur}
-                        onChange={handleChange}
-                        placeholder="20"
-                        inputProps={{ inputMode: 'numeric', pattern: '[0-9]*', min: 18 }}
-                        fullWidth
-                        error={Boolean(touched.age && errors.age)}
-                      />
-                      {touched.age && errors.age && (
-                        <FormHelperText error id="helper-text-age-signup">
-                          {errors.age}
-                        </FormHelperText>
-                      )}
-                    </Stack>
-                  </Grid>
-                  <Grid item xs={8} md={6}>
-                    <Stack spacing={1}>
+                    <Stack spacing={1} sx={{ width: { xs: '100%', md: '50%' } }}>
                       <InputLabel htmlFor="nationality-form">Национальность*</InputLabel>
                       <OutlinedInput
                         id="nationality-form"
@@ -623,230 +581,355 @@ const AnketaForm = ({
                         </FormHelperText>
                       )}
                     </Stack>
-                  </Grid>
-                  <Grid item xs={12} md={6}>
-                    <Stack spacing={1}>
-                      <InputLabel htmlFor="city-form">Город*</InputLabel>
-                      <Select
-                        sx={{
-                          '& .MuiList-root': { backgroundColor: '#121212 !important' },
-                        }}
-                        id="city-form"
-                        value={values.city || ''}
-                        name="city"
+                  </Stack>
+                </Stack>
+              </Stack>
+              <Stack
+                spacing={1}
+                sx={{
+                  border: '1px solid #ccc',
+                  borderRadius: '10px',
+                  padding: '20px',
+                }}
+              >
+                <Typography variant="h4" mb={3}>
+                  Адрес и контакты*
+                </Typography>
+                <Divider sx={{ mt: 6 }} />
+                <Stack direction="column" spacing={1}>
+                  <Stack direction={{ xs: 'column', md: 'row' }} spacing={3}>
+                    <Stack spacing={1} sx={{ width: { xs: '100%', md: '50%' } }}>
+                      <Stack spacing={1}>
+                        <InputLabel htmlFor="city-form">Город*</InputLabel>
+                        <Select
+                          sx={{
+                            '& .MuiList-root': { backgroundColor: '#121212 !important' },
+                          }}
+                          id="city-form"
+                          value={values.city || ''}
+                          name="city"
+                          onBlur={handleBlur}
+                          onChange={handleChange}
+                        >
+                          {cities?.map((city) => (
+                            <MenuItem key={city.id} value={city.id}>
+                              {city.name}
+                            </MenuItem>
+                          ))}
+                        </Select>
+
+                        {touched.city && errors.city && (
+                          <FormHelperText error id="helper-text-city-form">
+                            {errors.city}
+                          </FormHelperText>
+                        )}
+                      </Stack>
+                    </Stack>
+                    <Stack spacing={1} sx={{ width: { xs: '100%', md: '50%' } }}>
+                      <InputLabel htmlFor="address-form">Адрес*</InputLabel>
+                      <OutlinedInput
+                        id="address-form"
+                        type="text"
+                        value={values.address || ''}
+                        name="address"
                         onBlur={handleBlur}
                         onChange={handleChange}
-                      >
-                        {cities?.map((city) => (
-                          <MenuItem key={city.id} value={city.id}>
-                            {city.name}
-                          </MenuItem>
-                        ))}
-                      </Select>
-
-                      {touched.city && errors.city && (
-                        <FormHelperText error id="helper-text-city-form">
-                          {errors.city}
+                        placeholder="г. Москва, ул. Пушкина, д. 23"
+                        fullWidth
+                        error={Boolean(touched.address && errors.address)}
+                      />
+                      {touched.address && errors.address && (
+                        <FormHelperText error id="helper-text-address-form">
+                          {errors.address}
                         </FormHelperText>
                       )}
                     </Stack>
-                  </Grid>
-                </Grid>
-              </Grid>
-              <Grid item xs={6} md={2}>
-                <Stack spacing={1}>
-                  <InputLabel htmlFor="price-form">Цена от*</InputLabel>
-                  <OutlinedInput
-                    id="price-form"
-                    type="number"
-                    min="0"
-                    value={values.price || ''}
-                    name="price"
-                    onBlur={handleBlur}
-                    onChange={handleChange}
-                    placeholder="3000+"
-                    fullWidth
-                    error={Boolean(touched.price && errors.price)}
-                  />
-                  {touched.price && errors.price && (
-                    <FormHelperText error id="helper-text-price-form">
-                      {errors.price}
+                  </Stack>
+                  <Stack direction={{ xs: 'column', md: 'row' }} spacing={3}>
+                    <Stack spacing={1} sx={{ width: { xs: '100%', md: '50%' } }}>
+                      <InputLabel htmlFor="name-signup">Телефон*</InputLabel>
+                      <OutlinedInput
+                        id="phone-login"
+                        type="phone"
+                        value={values.phone || ''}
+                        name="phone"
+                        onBlur={handleBlur}
+                        onChange={handleChange}
+                        placeholder="+7 (999) 999-99-99"
+                        fullWidth
+                        error={Boolean(touched.phone && errors.phone)}
+                      />
+                      {touched.phone && errors.phone && (
+                        <FormHelperText error id="helper-text-phone-signup">
+                          {errors.phone}
+                        </FormHelperText>
+                      )}
+                    </Stack>
+                    <Stack spacing={1} sx={{ width: { xs: '100%', md: '50%' } }}>
+                      <InputLabel htmlFor="name-login">Телеграм</InputLabel>
+                      <OutlinedInput
+                        id="name-login"
+                        type="text"
+                        value={values.telegram || ''}
+                        name="telegram"
+                        onBlur={handleBlur}
+                        onChange={handleChange}
+                        placeholder="@username"
+                        fullWidth
+                        error={Boolean(touched.telegram && errors.telegram)}
+                      />
+                      {touched.telegram && errors.telegram && (
+                        <FormHelperText error id="helper-text-telegram-signup">
+                          {errors.telegram}
+                        </FormHelperText>
+                      )}
+                    </Stack>
+                    <Stack spacing={1} sx={{ width: { xs: '100%', md: '50%' } }}>
+                      <InputLabel htmlFor="whatsapp-login">Whatsapp</InputLabel>
+                      <OutlinedInput
+                        id="whatsapp-login"
+                        type="phone"
+                        value={values.whatsapp || ''}
+                        name="whatsapp"
+                        onBlur={handleBlur}
+                        onChange={handleChange}
+                        placeholder="+7 (999) 999-99-99"
+                        fullWidth
+                        error={Boolean(touched.whatsapp && errors.whatsapp)}
+                      />
+                      {touched.whatsapp && errors.whatsapp && (
+                        <FormHelperText error id="helper-text-whatsapp-signup">
+                          {errors.whatsapp}
+                        </FormHelperText>
+                      )}
+                    </Stack>
+                  </Stack>
+                </Stack>
+              </Stack>
+              <Stack
+                spacing={2}
+                sx={{
+                  border: '1px solid #ccc',
+                  borderRadius: '10px',
+                  padding: '20px',
+                }}
+              >
+                <Typography variant="h4" mb={3}>
+                  Условия встречи*
+                </Typography>
+                <Divider sx={{ mt: 6 }} />
+
+                <Stack direction="row" spacing={3} mb={3}>
+                  <Stack spacing={1} sx={{ width: '50%' }}>
+                    <InputLabel htmlFor="price-form">Цена от*</InputLabel>
+                    <OutlinedInput
+                      id="price-form"
+                      type="number"
+                      min="0"
+                      value={values.price || ''}
+                      name="price"
+                      onBlur={handleBlur}
+                      onChange={handleChange}
+                      placeholder="3000"
+                      fullWidth
+                      error={Boolean(touched.price && errors.price)}
+                    />
+                    {touched.price && errors.price && (
+                      <FormHelperText error id="helper-text-price-form">
+                        {errors.price}
+                      </FormHelperText>
+                    )}
+                  </Stack>
+                  <Stack spacing={1} sx={{ width: '50%' }}>
+                    <InputLabel htmlFor="price_hour-form">Цена за час*</InputLabel>
+                    <OutlinedInput
+                      id="price_hour-form"
+                      type="number"
+                      min="0"
+                      value={values.price_hour || ''}
+                      name="price_hour"
+                      onBlur={handleBlur}
+                      onChange={handleChange}
+                      placeholder="3000"
+                      fullWidth
+                      error={Boolean(touched.price_hour && errors.price_hour)}
+                    />
+                    {touched.price_hour && errors.price_hour && (
+                      <FormHelperText error id="helper-text-price_hour-form">
+                        {errors.price_hour}
+                      </FormHelperText>
+                    )}
+                  </Stack>
+                </Stack>
+                <Stack direction="row" spacing={3} mb={3}>
+                  <Stack spacing={1} sx={{ width: '50%' }}>
+                    <InputLabel htmlFor="price_two_hours-form">Цена за два часа*</InputLabel>
+                    <OutlinedInput
+                      id="price_two_hours-form"
+                      type="number"
+                      min="0"
+                      value={values.price_two_hours || ''}
+                      name="price_two_hours"
+                      onBlur={handleBlur}
+                      onChange={handleChange}
+                      placeholder="3000"
+                      fullWidth
+                      error={Boolean(touched.price_two_hours && errors.price_two_hours)}
+                    />
+                    {touched.price_two_hours && errors.price_two_hours && (
+                      <FormHelperText error id="helper-text-price_two_hours-form">
+                        {errors.price_two_hours}
+                      </FormHelperText>
+                    )}
+                  </Stack>
+                  <Stack spacing={1} sx={{ width: '50%' }}>
+                    <InputLabel htmlFor="price_night-form">Цена за ночь*</InputLabel>
+                    <OutlinedInput
+                      id="price_night-form"
+                      type="number"
+                      min="0"
+                      value={values.price_night || ''}
+                      name="price_night"
+                      onBlur={handleBlur}
+                      onChange={handleChange}
+                      placeholder="3000"
+                      fullWidth
+                      error={Boolean(touched.price_night && errors.price_night)}
+                    />
+                    {touched.price_night && errors.price_night && (
+                      <FormHelperText error id="helper-text-price_night-form">
+                        {errors.price_night}
+                      </FormHelperText>
+                    )}
+                  </Stack>
+                </Stack>
+                <Divider sx={{ my: 6 }} />
+                <Stack spacing={0} sx={{ width: '100%' }}>
+                  <Typography variant="h4">Услуги*</Typography>
+                  {touched.services && errors.services && (
+                    <FormHelperText error id="helper-text-services-form">
+                      {errors.services}
                     </FormHelperText>
                   )}
+                  <FormGroup>
+                    {servicesTypes?.length > 0 ? (
+                      servicesTypes
+                        .filter((s) => s.services.length > 0)
+                        .map((serviceType) => (
+                          <Accordion
+                            key={serviceType.id}
+                            sx={{
+                              backgroundColor: 'transparent',
+                              backgroundImage: 'none',
+                              boxShadow: 'none',
+                              margin: '0 !important',
+                            }}
+                          >
+                            <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+                              <Typography variant="h6">{serviceType.name}</Typography>
+                            </AccordionSummary>
+                            <AccordionDetails sx={{ paddingY: 0 }}>
+                              <Stack
+                                spacing={1}
+                                component="ul"
+                                sx={{
+                                  listStyle: 'none',
+                                  padding: 0,
+                                  margin: 0,
+                                  columnCount: { xs: 1, md: 3 },
+                                  columnFill: 'balance',
+                                  display: 'block',
+                                }}
+                              >
+                                {serviceType.services.map((service) => (
+                                  <Stack
+                                    key={service.id}
+                                    component="li"
+                                    sx={{
+                                      breakInside: 'avoid',
+                                      display: 'list-item',
+                                      width: 'fit-content',
+                                    }}
+                                  >
+                                    <FormControlLabel
+                                      control={
+                                        <Checkbox
+                                          error={Boolean(touched.services && errors.services)}
+                                          checked={values.services.some((s) => s.id === service.id)}
+                                          name={service.id}
+                                          onChange={(e) => {
+                                            if (e.target.checked) {
+                                              setFieldValue('services', [
+                                                ...values.services,
+                                                { id: service.id, price: '' },
+                                              ]);
+                                            } else {
+                                              setFieldValue(
+                                                'services',
+                                                values.services.filter((s) => s.id !== service.id)
+                                              );
+                                            }
+                                          }}
+                                        />
+                                      }
+                                      label={service.name}
+                                    />
+                                    {values.services.some((s) => s.id === service.id) && (
+                                      <OutlinedInput
+                                        id={`price-${service.id}`}
+                                        type="text"
+                                        value={
+                                          values.services.find((s) => s.id === service.id)?.price ||
+                                          ''
+                                        }
+                                        onBlur={handleBlur}
+                                        onChange={(e) => {
+                                          setFieldValue(
+                                            'services',
+                                            values.services.map((s) =>
+                                              s.id === service.id
+                                                ? { ...s, price: e.target.value }
+                                                : s
+                                            )
+                                          );
+                                        }}
+                                        placeholder="Добавьте комментарий"
+                                        fullWidth
+                                        sx={{ mb: 1 }}
+                                      />
+                                    )}
+                                  </Stack>
+                                ))}
+                              </Stack>
+                            </AccordionDetails>
+                          </Accordion>
+                        ))
+                    ) : (
+                      <Typography variant="h6">Услуги не найдены</Typography>
+                    )}
+                  </FormGroup>
                 </Stack>
-              </Grid>
-              <Grid item xs={6} md={2}>
-                <Stack spacing={1}>
-                  <InputLabel htmlFor="price_hour-form">Цена за час*</InputLabel>
-                  <OutlinedInput
-                    id="price_hour-form"
-                    type="number"
-                    min="0"
-                    value={values.price_hour || ''}
-                    name="price_hour"
-                    onBlur={handleBlur}
-                    onChange={handleChange}
-                    placeholder="3000+"
-                    fullWidth
-                    error={Boolean(touched.price_hour && errors.price_hour)}
-                  />
-                  {touched.price_hour && errors.price_hour && (
-                    <FormHelperText error id="helper-text-price_hour-form">
-                      {errors.price_hour}
-                    </FormHelperText>
-                  )}
-                </Stack>
-              </Grid>
-              <Grid item xs={6} md={2}>
-                <Stack spacing={1}>
-                  <InputLabel htmlFor="price_two_hours-form">Цена за два часа*</InputLabel>
-                  <OutlinedInput
-                    id="price_two_hours-form"
-                    type="number"
-                    min="0"
-                    value={values.price_two_hours || ''}
-                    name="price_two_hours"
-                    onBlur={handleBlur}
-                    onChange={handleChange}
-                    placeholder="3000+"
-                    fullWidth
-                    error={Boolean(touched.price_two_hours && errors.price_two_hours)}
-                  />
-                  {touched.price_two_hours && errors.price_two_hours && (
-                    <FormHelperText error id="helper-text-price_two_hours-form">
-                      {errors.price_two_hours}
-                    </FormHelperText>
-                  )}
-                </Stack>
-              </Grid>
-              <Grid item xs={6} md={2}>
-                <Stack spacing={1}>
-                  <InputLabel htmlFor="price_night-form">Цена за ночь*</InputLabel>
-                  <OutlinedInput
-                    id="price_night-form"
-                    type="number"
-                    min="0"
-                    value={values.price_night || ''}
-                    name="price_night"
-                    onBlur={handleBlur}
-                    onChange={handleChange}
-                    placeholder="3000+"
-                    fullWidth
-                    error={Boolean(touched.price_night && errors.price_night)}
-                  />
-                  {touched.price_night && errors.price_night && (
-                    <FormHelperText error id="helper-text-price_night-form">
-                      {errors.price_night}
-                    </FormHelperText>
-                  )}
-                </Stack>
-              </Grid>
-              <Grid item xs={12} md={4}>
-                <Stack spacing={1}>
-                  <InputLabel htmlFor="address-form">Адрес*</InputLabel>
-                  <OutlinedInput
-                    id="address-form"
-                    type="text"
-                    value={values.address || ''}
-                    name="address"
-                    onBlur={handleBlur}
-                    onChange={handleChange}
-                    placeholder="г. Москва, ул. Пушкина, д. 23"
-                    fullWidth
-                    error={Boolean(touched.address && errors.address)}
-                  />
-                  {touched.address && errors.address && (
-                    <FormHelperText error id="helper-text-address-form">
-                      {errors.address}
-                    </FormHelperText>
-                  )}
-                </Stack>
-              </Grid>
-              <Grid item xs={12}>
-                <Stack spacing={1}>
-                  <InputLabel>Услуги*</InputLabel>
-                  {values?.services?.length > 0 &&
-                    values?.services?.map((service) => (
-                      <Stack key={service?.id} direction="row" alignItems="center">
-                        <TextField value={service?.name} disabled fullWidth />
-                        <TextField
-                          value={service?.price || ''}
-                          onChange={(event) => {
-                            const newServices = values.services.map((s) => {
-                              if (s.id === service.id) {
-                                return { ...s, price: event.target.value };
-                              }
-                              return s;
-                            });
-                            setFieldValue('services', newServices);
-                          }}
-                          name="price"
-                          placeholder="Цена за услугу"
-                          required
-                          type="number"
-                          error={Boolean(touched.services && errors.services)}
-                          autoFocus={!service?.price}
-                        />
-                        <CloseIcon
-                          sx={{ cursor: 'pointer', ml: 1 }}
-                          onClick={() => {
-                            const newServices = values.services.filter((s) => s.id !== service.id);
-                            setFieldValue('services', newServices);
-                          }}
-                        />
-                      </Stack>
-                    ))}
-                  <Services
-                    value={values?.services}
-                    values={servicesData || []}
-                    setValues={(newServices) => setFieldValue('services', newServices)}
-                  />
-                </Stack>
-              </Grid>
-              <Grid item xs={12}>
-                <Stack spacing={1}>
-                  <InputLabel htmlFor="decription-form">Обо мне*</InputLabel>
-                  <TextField
-                    id="decription-form"
-                    type="text"
-                    value={values.additional_info}
-                    name="additional_info"
-                    onBlur={handleBlur}
-                    onChange={handleChange}
-                    placeholder="Напишите какой-нибудь текст"
-                    fullWidth
-                    multiline
-                    rows={4}
-                    error={Boolean(touched.additional_info && errors.additional_info)}
-                  />
-                  {touched.additional_info && errors.additional_info && (
-                    <FormHelperText error id="helper-text-additional_info-form">
-                      {errors.additional_info}
-                    </FormHelperText>
-                  )}
-                </Stack>
-              </Grid>
-              {errors.submit && (
-                <Grid item xs={12}>
-                  <FormHelperText error>{errors.submit}</FormHelperText>
-                </Grid>
-              )}
-              <Grid item xs={12}>
-                <AnimateButton>
-                  <Button
-                    disableElevation
-                    disabled={isSubmitting || isPosting || isEditing}
-                    fullWidth
-                    size="large"
-                    type="submit"
-                    variant="contained"
-                    color="primary"
-                  >
-                    {profile?.id ? 'Сохранить анкету' : 'Создать анкету'}
-                  </Button>
-                </AnimateButton>
-              </Grid>
-            </Grid>
+              </Stack>
+
+              <Stack item xs={12} sx={{ mt: 3 }}>
+                {errors.submit && (
+                  <Stack item xs={12}>
+                    <FormHelperText error>{errors.submit}</FormHelperText>
+                  </Stack>
+                )}
+                <Button
+                  disabled={isSubmitting || isPosting || isEditing}
+                  fullWidth
+                  size="large"
+                  type="submit"
+                  variant="contained"
+                  color="primary"
+                  onClick={handleSubmit}
+                >
+                  {profile?.id ? 'Сохранить анкету' : 'Создать анкету'}
+                </Button>
+              </Stack>
+            </Stack>
           </form>
         )}
       </Formik>

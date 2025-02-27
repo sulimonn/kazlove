@@ -127,7 +127,7 @@ const VerifyEmail = () => {
                 >
                   <VerificationInput
                     autoFocus
-                    length={6}
+                    length={4}
                     validChars="0123456789"
                     placeholder=" "
                     classNames={{

@@ -34,15 +34,16 @@ const Palette = (mode) => {
   });
 
   paletteColor.primary.main = '#ff66c4';
-  paletteColor.primary.light = '#ff66c4';
-  paletteColor.primary.lighter = '#ff66c420';
-  paletteColor.primary.dark = '#8a005d';
+  paletteColor.primary.light = '#ff94d6';
+  paletteColor.primary.lighter = '#ffb3e2';
+  paletteColor.primary.dark = '#803362';
+  paletteColor.primary.darker = '#331427';
   paletteColor.primary.contrastText = '#fff';
   paletteColor.secondary.main = '#6e5ae2';
-  paletteColor.secondary.light = '#ad90ff';
-  paletteColor.secondary.lighter = '#8d7de8';
-  paletteColor.secondary.dark = '#6e5ae2';
-  paletteColor.secondary.darker = '#271782';
+  paletteColor.secondary.light = '#9a8ceb';
+  paletteColor.secondary.lighter = '#b7adf1';
+  paletteColor.secondary.dark = '#372d71';
+  paletteColor.secondary.darker = '#16122d';
   paletteColor.secondary.contrastText = '#fff';
 
   return createTheme({

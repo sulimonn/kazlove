@@ -15,6 +15,10 @@ import {
 } from '@mui/material';
 import AccountCircleIcon from '@mui/icons-material/AccountCircle';
 import DeleteIcon from '@mui/icons-material/Delete';
+import DoneIcon from '@mui/icons-material/Done';
+import TelegramIcon from '@mui/icons-material/Telegram';
+import LocalPhoneIcon from '@mui/icons-material/LocalPhone';
+import WhatsAppIcon from '@mui/icons-material/WhatsApp';
 
 import {
   useGetProfilePhotosQuery,
@@ -91,157 +95,282 @@ const Profile = () => {
   }
 
   return (
-    <Container>
-      <Stack
-        direction={{ xs: 'column', sm: 'row' }}
-        justifyContent="space-between"
-        mb={2}
-        spacing={2}
-        alignItems="center"
-      >
-        <Typography variant="h1" fontWeight="bold" color="text.primary">
-          {girl.name}, {girl.age} года, в городе {girl.city?.name}
-        </Typography>
-        <Stack justifyContent="center">
-          {showContact ? (
-            <Typography variant="h4" color="text.primary" onClick={() => setShowContact(false)}>
-              {girl.phone}
-            </Typography>
-          ) : (
-            <Button
-              onClick={() => setShowContact(true)}
-              color="secondary"
-              variant="contained"
-              startIcon={<AccountCircleIcon />}
-            >
-              Показать контакты
-            </Button>
-          )}
-        </Stack>
-      </Stack>
-      <Box sx={{ display: 'flex', gap: 3, flexDirection: { xs: 'column', sm: 'row' } }}>
-        <Box height={{ xs: 450, sm: 700 }} width={{ xs: '100%', sm: 550 }}>
+    <Container maxWidth="xl">
+      <Stack direction={{ xs: 'column', md: 'row' }} spacing={2}>
+        <Box
+          width={{
+            xs: '100%',
+            md: 462,
+          }}
+          sx={{
+            display: 'flex',
+            justifyContent: 'center',
+            alignItems: 'center',
+            flexDirection: 'column',
+            height: '100%',
+            overflow: 'hidden',
+          }}
+        >
           {photos.length > 0 && <MySwiper photos={photos} refetch={refetch} media={media} />}
         </Box>
         <Box flex={1}>
           <Stack spacing={1.5} justifyContent="left">
-            <Stack direction="row" justifyContent="left" spacing={1}>
-              <Typography variant="h4" fontWeight="bold" color="text.disabled">
-                Город :
+            <Stack
+              direction="column"
+              justifyContent="space-between"
+              mb={2}
+              spacing={2}
+              alignItems="left"
+            >
+              <Typography variant="h2" fontWeight="bold" color="text.primary">
+                {girl.name}, {girl.age} года
               </Typography>
-              <Typography variant="h4" color="text.primary">
-                {girl.city?.name}
+              <Typography variant="h4" fontWeight="normal" color="text.primary">
+                {girl.city?.name}, {girl.address}
               </Typography>
-            </Stack>
-            <Stack direction="row" justifyContent="left" spacing={1}>
-              <Typography variant="h4" fontWeight="bold" color="text.disabled">
-                Адрес :
-              </Typography>
-              <Typography variant="h4" color="text.primary">
-                {girl.address}
-              </Typography>
-            </Stack>
-            <Stack direction="row" justifyContent="left" spacing={1}>
-              <Typography variant="h4" color="text.primary">
-                {girl.profile_type?.name}
-              </Typography>
-            </Stack>
-
-            <Stack direction="row" justifyContent="left" spacing={1}>
-              <Typography variant="h4" fontWeight="bold" color="text.disabled">
-                Гендер :
-              </Typography>
-              <Typography variant="h4" color="text.primary">
-                {girl.gender?.name}
-              </Typography>
-            </Stack>
-            <Stack direction="row" justifyContent="left" spacing={1}>
-              <Typography variant="h4" color="text.primary">
-                <Typography variant="h4" fontWeight="bold" color="text.disabled" component="span">
-                  Возраст :
-                </Typography>
-                {girl.age}
-              </Typography>
-            </Stack>
-            <Stack direction="row" justifyContent="left" spacing={1}>
-              <Typography variant="h4" fontWeight="bold" color="text.disabled">
-                Грудь :
-              </Typography>
-              <Typography variant="h4" color="text.primary">
-                {girl.breast_size}
-              </Typography>
-            </Stack>
-            <Stack direction="row" justifyContent="left" spacing={1}>
-              <Typography variant="h4" fontWeight="bold" color="text.disabled">
-                Вес :
-              </Typography>
-              <Typography variant="h4" color="text.primary">
-                {girl.weight}
-              </Typography>
-            </Stack>
-            <Stack direction="row" justifyContent="left" spacing={1}>
-              <Typography variant="h4" fontWeight="bold" color="text.disabled">
-                Рост :
-              </Typography>
-              <Typography variant="h4" color="text.primary">
-                {girl.height}
-              </Typography>
-            </Stack>
-            <Stack direction="row" justifyContent="left" spacing={1}>
-              <Typography variant="h4" fontWeight="bold" color="text.disabled">
-                Национальность :
-              </Typography>
-              <Typography variant="h4" color="text.primary">
-                {girl.nationality}
-              </Typography>
-            </Stack>
-            <Stack direction="row" justifyContent="left" spacing={1}>
-              <Typography variant="h4" fontWeight="bold" color="text.disabled">
-                Цена за час :
-              </Typography>
-              <Typography variant="h4" color="text.primary">
-                {girl.price_hour}
-              </Typography>
-            </Stack>
-            <Stack direction="row" justifyContent="left" spacing={1}>
-              <Typography variant="h4" fontWeight="bold" color="text.disabled">
-                Цена за два часа :
-              </Typography>
-              <Typography variant="h4" color="text.primary">
-                {girl.price_two_hours}
-              </Typography>
-            </Stack>
-            <Stack direction="row" justifyContent="left" spacing={1}>
-              <Typography variant="h4" fontWeight="bold" color="text.disabled">
-                Цена за ночь :
-              </Typography>
-              <Typography variant="h4" color="text.primary">
-                {girl.price_night}
-              </Typography>
-            </Stack>
-            <Stack direction="row" justifyContent="left" spacing={1}>
-              <Typography variant="h4" color="text.primary" whiteSpace="pre-line">
-                <Typography variant="h4" fontWeight="bold" color="text.disabled" component="span">
-                  О себе :
-                </Typography>{' '}
-                {girl.additional_info}
-              </Typography>
-            </Stack>
-            {girl.services.length > 0 && (
-              <Stack direction="row" justifyContent="left" spacing={1}>
-                <Typography variant="h4" fontWeight="bold" color="text.disabled" component="span">
-                  Услуги :
-                </Typography>
-                {girl.services.map((service) => (
-                  <Typography variant="h4" color="text.primary" whiteSpace="pre-line">
-                    {service.name} за {service.price}
-                  </Typography>
-                ))}
+              <Stack justifyContent="left">
+                {showContact ? (
+                  <Stack direction={{ xs: 'column', md: 'row' }} spacing={1}>
+                    {girl.phone && (
+                      <Button
+                        component="a"
+                        href={`tel:${girl.phone}`}
+                        variant="outlined"
+                        sx={{ flex: 1 }}
+                        startIcon={<LocalPhoneIcon />}
+                      >
+                        <Typography variant="body1" color="text.primary">
+                          {girl.phone}
+                        </Typography>
+                      </Button>
+                    )}
+                    {girl.telegram && (
+                      <Button
+                        component="a"
+                        href={`https://t.me/${girl.telegram}`}
+                        variant="outlined"
+                        sx={{ flex: 1 }}
+                        startIcon={<TelegramIcon />}
+                      >
+                        <Typography variant="body1" color="text.primary">
+                          {girl.telegram}
+                        </Typography>
+                      </Button>
+                    )}
+                    {girl.whatsapp && (
+                      <Button
+                        component="a"
+                        href={`https://whatsapp.com/${girl.whatsapp}`}
+                        variant="outlined"
+                        sx={{ flex: 1 }}
+                        startIcon={<WhatsAppIcon />}
+                      >
+                        <Typography variant="body1" color="text.primary">
+                          {girl.whatsapp}
+                        </Typography>
+                      </Button>
+                    )}
+                  </Stack>
+                ) : (
+                  <Button
+                    onClick={() => setShowContact(true)}
+                    color="secondary"
+                    variant="contained"
+                    startIcon={<AccountCircleIcon />}
+                  >
+                    Показать контакты
+                  </Button>
+                )}
               </Stack>
-            )}
+            </Stack>
+            <Stack
+              direction={{ xs: 'column', sm: 'row', md: 'column', lg: 'row' }}
+              justifyContent="left"
+              spacing={0.5}
+            >
+              <Stack direction="row" justifyContent="left" spacing={1} flex={1.5}>
+                <Typography variant="h5" color="text.primary" whiteSpace="pre-line">
+                  {girl.additional_info}
+                </Typography>
+              </Stack>
+              <Stack flex={1}>
+                <Box
+                  sx={{
+                    width: '100%',
+                    p: 1.5,
+                    borderRadius: 2,
+                    position: 'relative',
+                    '&::after': {
+                      content: '""',
+                      display: 'block',
+                      position: 'absolute',
+                      top: 0,
+                      left: 0,
+                      width: '100%',
+                      height: '100%',
+                      backgroundColor: 'secondary.lighter',
+                      opacity: 0.3,
+                      borderRadius: 2,
+                      zIndex: -1,
+                    },
+                  }}
+                >
+                  <Typography
+                    variant="h5"
+                    color="text.primary"
+                    whiteSpace="pre-line"
+                    fontWeight="bold"
+                  >
+                    🙍‍♀️ {girl.nationality}
+                  </Typography>
+                  <Typography
+                    variant="h5"
+                    color="text.primary"
+                    whiteSpace="pre-line"
+                    fontWeight="bold"
+                  >
+                    ❤️‍🩹 {girl.weight} кг, {girl.height} см
+                  </Typography>
+                  <Typography
+                    variant="h5"
+                    color="text.primary"
+                    whiteSpace="pre-line"
+                    fontWeight="bold"
+                  >
+                    🍒 {girl.breast_size} размер груди
+                  </Typography>
+                  <Box display="grid" sx={{ gridTemplateColumns: '1fr 1fr', gap: 1 }} mt={3}>
+                    <Box height="100%" bgcolor="primary.dark" py={1} px={2} borderRadius={2}>
+                      <Stack
+                        direction="row"
+                        justifyContent="space-between"
+                        alignItems="flex-start"
+                        spacing={1}
+                      >
+                        <Typography variant="h5" color="text.primary" whiteSpace="pre-line">
+                          Цена от
+                        </Typography>
+                        <Typography variant="h2">💫</Typography>
+                      </Stack>
+                      <Typography variant="h5" color="text.primary" whiteSpace="pre-line">
+                        {new Intl.NumberFormat('ru-RU').format(girl.price)} ₸
+                      </Typography>
+                    </Box>
+                    <Box height="100%" bgcolor="primary.dark" py={1} px={2} borderRadius={2}>
+                      <Stack
+                        direction="row"
+                        justifyContent="space-between"
+                        alignItems="flex-start"
+                        spacing={1}
+                      >
+                        <Typography variant="h5" color="text.primary" whiteSpace="pre-line">
+                          1 час
+                        </Typography>
+                        <Typography variant="h2">🌞</Typography>
+                      </Stack>
+                      <Typography variant="h5" color="text.primary" whiteSpace="pre-line">
+                        {new Intl.NumberFormat('ru-RU').format(girl.price_hour)} ₸
+                      </Typography>
+                    </Box>
+                    <Box height="100%" bgcolor="primary.dark" py={1} px={2} borderRadius={2}>
+                      <Stack
+                        direction="row"
+                        justifyContent="space-between"
+                        alignItems="flex-start"
+                        spacing={1}
+                      >
+                        <Typography variant="h5" color="text.primary" whiteSpace="pre-line">
+                          2 часа
+                        </Typography>
+                        <Typography variant="h2">🌞</Typography>
+                      </Stack>
+                      <Typography variant="h5" color="text.primary" whiteSpace="pre-line">
+                        {new Intl.NumberFormat('ru-RU').format(girl.price_two_hours)} ₸
+                      </Typography>
+                    </Box>
+                    <Box height="100%" bgcolor="secondary.dark" py={1} px={2} borderRadius={2}>
+                      <Stack
+                        direction="row"
+                        justifyContent="space-between"
+                        alignItems="flex-start"
+                        spacing={1}
+                      >
+                        <Typography variant="h5" color="text.primary" whiteSpace="pre-line">
+                          Ночь
+                        </Typography>
+                        <Typography variant="h2">🌚</Typography>
+                      </Stack>
+                      <Typography variant="h5" color="text.primary" whiteSpace="pre-line">
+                        {new Intl.NumberFormat('ru-RU').format(girl.price_night)} ₸
+                      </Typography>
+                    </Box>
+                  </Box>
+                </Box>
+              </Stack>
+            </Stack>
           </Stack>
+          {girl.services.length > 0 && (
+            <Stack direction="column" justifyContent="left" spacing={2} my={4}>
+              <Typography variant="h3" fontWeight="bold">
+                Предпочтения
+              </Typography>
+              <Box
+                component="ul"
+                sx={{
+                  listStyle: 'none',
+                  padding: 0,
+                  margin: 0,
+                  columnCount: { xs: 1, md: 2 },
+                  columnFill: 'balance',
+                  display: 'block',
+                  gap: '10px',
+                }}
+              >
+                {girl.services.map((service) => (
+                  <Box
+                    component="li"
+                    key={service.id}
+                    my={1}
+                    sx={{
+                      breakInside: 'avoid',
+                      display: 'list-item',
+                      width: 'fit-content',
+                    }}
+                  >
+                    <Stack direction="column">
+                      <Stack alignItems="center" direction="row" spacing={1}>
+                        <DoneIcon
+                          size="small"
+                          color="primary"
+                          sx={{ width: '16px', height: '16px' }}
+                        />
+                        <Typography
+                          variant="h4"
+                          color="text.primary"
+                          whiteSpace="pre-line"
+                          fontWeight="bold"
+                        >
+                          {service.name}
+                        </Typography>
+                      </Stack>
+                      {service?.price !== '' && (
+                        <Typography
+                          variant="body1"
+                          color="primary"
+                          whiteSpace="pre-line"
+                          sx={{ ml: 3 }}
+                        >
+                          <i>{service.price}</i>
+                        </Typography>
+                      )}
+                    </Stack>
+                  </Box>
+                ))}
+              </Box>
+            </Stack>
+          )}
         </Box>
-      </Box>
+      </Stack>
       {/* Comment Section */}
       <Box mt={6}>
         <Typography variant="h3" gutterBottom>

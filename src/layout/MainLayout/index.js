@@ -45,7 +45,7 @@ const MainLayout = () => {
     <Box sx={{ display: 'flex', width: '100%', flexWrap: 'wrap' }}>
       {matchDownLG && <Drawer open={open} handleDrawerToggle={handleDrawerToggle} />}
       <Header open={open} handleDrawerToggle={handleDrawerToggle} />
-      <Box component="main" sx={{ width: '100%', flexGrow: 1, p: { xs: 2, sm: 3 } }}>
+      <Box component="main" sx={{ width: '100%', flexGrow: 1, py: { xs: 2, sm: 3 } }}>
         <Outlet />
       </Box>
     </Box>
