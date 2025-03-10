@@ -2,7 +2,7 @@
 
 const Typography = (theme) => ({
   htmlFontSize: 16,
-  fontFamily: `'Mulish', sans-serif`,
+  fontFamily: `'Roboto Flex', 'Mulish', sans-serif`,
   fontWeightLight: 300,
   fontWeightRegular: 400,
   fontWeightMedium: 500,

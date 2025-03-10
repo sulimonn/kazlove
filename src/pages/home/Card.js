@@ -7,7 +7,10 @@ import { Swiper, SwiperSlide } from 'swiper/react';
 import 'swiper/css';
 import 'swiper/css/scrollbar';
 // material-ui
-import { Box, Typography, Button } from '@mui/material';
+import { Box, Typography, Button, Stack } from '@mui/material';
+import TelegramIcon from '@mui/icons-material/Telegram';
+import LocalPhoneIcon from '@mui/icons-material/LocalPhone';
+import WhatsAppIcon from '@mui/icons-material/WhatsApp';
 
 const Card = ({ girl }) => {
   const [showContact, setShowContact] = React.useState(false);
@@ -34,7 +37,7 @@ const Card = ({ girl }) => {
 
   return (
     <Box
-      height={'550px'}
+      height={{ xs: 668, sm: 600 }}
       borderRadius={2}
       sx={{
         background: !girl.promotion_level
@@ -54,7 +57,6 @@ const Card = ({ girl }) => {
           top: 'var(--swiper-scrollbar-bottom, 4px)',
           bottom: 'var(--swiper-scrollbar-top, auto)',
         },
-        overflow: 'hidden',
       }}
       onMouseEnter={() => swiperRef.current.autoplay.start()} // stop autoplay on hover
       onMouseLeave={() => swiperRef.current.autoplay.stop()}
@@ -97,7 +99,7 @@ const Card = ({ girl }) => {
             style={{ textDecoration: 'none', color: 'inherit', overflow: 'hidden' }}
           >
             <Box
-              height={'400px'}
+              height={{ xs: 550, sm: 500 }}
               width={'100%'}
               sx={{
                 mask: 'linear-gradient(360deg, rgba(0, 0, 0, 0) 5%, rgba(0, 0, 0, 1) 20%)',
@@ -113,11 +115,11 @@ const Card = ({ girl }) => {
               )}
             </Box>
             <Box position={'absolute'} bottom={0} p={2} minHeight={'170px'}>
-              <Typography variant="h3" color="text.primary">
-                {girl.name} {girl.age}
+              <Typography variant="h3" color="text.primary" fontWeight={900}>
+                {girl.name}, {girl.age}
               </Typography>
               <Typography variant="body1" color="text.secondary" fontWeight={'900'} my={1}>
-                {girl?.city?.name}
+                {girl?.city?.name}, {girl?.address}
               </Typography>
               <Typography variant="body1" color="text.secondary" whiteSpace={'pre-line'} mb={2}>
                 {girl.additional_info.length > 80
@@ -138,7 +140,7 @@ const Card = ({ girl }) => {
         <SwiperSlide>
           <Link to={`/profile/${girl.id}`} style={{ textDecoration: 'none', color: 'inherit' }}>
             <Box
-              height={'400px'}
+              height={{ xs: 550, sm: 500 }}
               width={'100%'}
               sx={{ mask: 'linear-gradient(360deg, rgba(0, 0, 0, 0) 5%, rgba(0, 0, 0, 1) 20%)' }}
             >
@@ -151,20 +153,24 @@ const Card = ({ girl }) => {
             </Box>
             <Box position={'absolute'} bottom={0} p={2} minHeight={'140px'}>
               <Typography variant="h5" color="text.secondary" whiteSpace={'pre-line'} mb={1}>
-                {girl.nationality}, {girl?.profile_type?.name}
+                🙍‍♀️ {girl.nationality}
               </Typography>
               <Typography variant="h5" color="text.secondary" whiteSpace={'pre-line'} mb={1}>
-                {girl.breast_size} размер груди, {girl.weight}, {girl.height}
+                💝 {girl.breast_size} размер груди, {girl.weight}, {girl.height}
               </Typography>
               <Typography variant="body1" color="text.secondary" whiteSpace={'pre-line'} mb={2}>
-                {girl?.services?.map((service) => service.name).join(', ')}
+                🌟{' '}
+                {girl?.services
+                  ?.slice(0, 7)
+                  .map((service) => service.name)
+                  .join(', ')}
               </Typography>
             </Box>
           </Link>
         </SwiperSlide>
         <SwiperSlide>
           <Box
-            height={'400px'}
+            height={{ xs: 550, sm: 500 }}
             width={'100%'}
             sx={{ mask: 'linear-gradient(360deg, rgba(0, 0, 0, 0) 5%, rgba(0, 0, 0, 1) 20%)' }}
           >
@@ -176,7 +182,7 @@ const Card = ({ girl }) => {
             />
           </Box>
           <Box
-            position={'absolute'}
+            position="absolute"
             bottom={0}
             p={2}
             minHeight={'140px'}
@@ -185,13 +191,13 @@ const Card = ({ girl }) => {
             left={0}
           >
             <Box
-              display={'flex'}
-              justifyContent={'center'}
-              alignItems={'stretch'}
-              flexDirection={'column'}
-              minHeight={'140px'}
-              width={'100%'}
-              gap={2}
+              display="flex"
+              justifyContent="flex-end"
+              alignItems="stretch"
+              flexDirection="column"
+              minHeight={140}
+              width="100%"
+              gap={0.5}
               onMouseEnter={() => swiperRef.current.autoplay.stop()}
               onMouseLeave={() => swiperRef.current.autoplay.start()}
             >
@@ -205,19 +211,49 @@ const Card = ({ girl }) => {
                   Показать контакты
                 </Button>
               ) : (
-                <Box>
-                  <Box
-                    component="a"
-                    target="_blank"
-                    href={'tel:' + girl.phone}
-                    sx={{ color: 'inherit' }}
-                  >
-                    {girl.phone}
-                  </Box>
-                  <a href={'mailto:' + girl.email} style={{ textDecoration: 'none' }}>
-                    {girl.email}
-                  </a>
-                </Box>
+                <Stack direction="column" spacing={0.5}>
+                  {girl.phone && (
+                    <Button
+                      component="a"
+                      href={`tel:${girl.phone}`}
+                      variant="outlined"
+                      sx={{ flex: 1 }}
+                      startIcon={<LocalPhoneIcon />}
+                    >
+                      <Typography variant="body1" color="text.primary">
+                        {girl.phone}
+                      </Typography>
+                    </Button>
+                  )}
+                  {girl?.telegram && (
+                    <Button
+                      component="a"
+                      href={`https://t.me/${girl.telegram}`}
+                      variant="outlined"
+                      sx={{ flex: 1 }}
+                      startIcon={<TelegramIcon />}
+                      target="_blank"
+                    >
+                      <Typography variant="body1" color="text.primary">
+                        {girl.telegram}
+                      </Typography>
+                    </Button>
+                  )}
+                  {girl?.whatsapp && (
+                    <Button
+                      component="a"
+                      href={`https://wa.me/${girl.whatsapp}?text=Привет! Я пишу с сайта KazLove`}
+                      variant="outlined"
+                      sx={{ flex: 1 }}
+                      target="_blank"
+                      startIcon={<WhatsAppIcon />}
+                    >
+                      <Typography variant="body1" color="text.primary">
+                        {girl.whatsapp}
+                      </Typography>
+                    </Button>
+                  )}
+                </Stack>
               )}
               <Link
                 to={'/profile/' + girl.id}

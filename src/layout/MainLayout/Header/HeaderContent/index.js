@@ -13,6 +13,7 @@ import {
   Select,
   MenuItem,
   IconButton,
+  Badge,
 } from '@mui/material';
 import LocationOnIcon from '@mui/icons-material/LocationOn';
 import MenuIcon from '@mui/icons-material/Menu';
@@ -101,7 +102,7 @@ const HeaderContent = () => {
                 </Box>
               ) : (
                 <Box sx={{ display: 'flex', alignItems: 'center', height: '100%' }} ml={2}>
-                  <BalanceComp />
+                  {profile?.id && <BalanceComp />}
                   <Button
                     color="secondary"
                     style={{ marginLeft: '10px' }}
@@ -115,27 +116,33 @@ const HeaderContent = () => {
               )}
             </Box>
             <Box display="flex" justifyContent="flex-end">
-              <Button
-                component={Link}
-                to={isAuth ? (!!profile ? '/profile/me' : '/profile/add') : '/login'}
-                color={
-                  profile?.id
-                    ? profile?.approved === 1 && profile?.checked === 1
-                      ? 'primary'
-                      : 'error'
-                    : 'primary'
-                }
-                variant="contained"
-                style={{ marginLeft: '10px', textTransform: 'none' }}
+              <Badge
+                badgeContent={profile?.tariff?.type?.name}
+                color="secondary"
+                overlap="circular"
               >
-                {profile?.id
-                  ? profile?.approved === 1 && profile?.checked === 1
-                    ? 'Моя анкета'
-                    : profile?.checked === 0 && profile?.approved === 0
-                      ? 'Рассматривается'
-                      : 'Анкета отклонена'
-                  : 'Добавить анкету'}
-              </Button>
+                <Button
+                  component={Link}
+                  to={isAuth ? (!!profile ? '/profile/me' : '/profile/add') : '/login'}
+                  color={
+                    profile?.id
+                      ? profile?.approved === 1 && profile?.checked === 1
+                        ? 'primary'
+                        : 'error'
+                      : 'primary'
+                  }
+                  variant="contained"
+                  style={{ marginLeft: '10px', textTransform: 'none' }}
+                >
+                  {profile?.id
+                    ? profile?.approved === 1 && profile?.checked === 1
+                      ? 'Моя анкета'
+                      : profile?.checked === 0 && profile?.approved === 0
+                        ? 'Рассматривается'
+                        : 'Анкета отклонена'
+                    : 'Добавить анкету'}
+                </Button>
+              </Badge>
             </Box>
           </Box>
           <Box sx={{ display: { xs: 'block', sm: 'none' } }}>

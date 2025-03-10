@@ -18,7 +18,6 @@ export const balanceApi = apiSlice.injectEndpoints({
       invalidatesTags: ['Trade'],
     }),
   }),
-  overrideExisting: false, // Prevents overriding existing endpoints
 });
 
 export const { useGetBalanceQuery, useGetTradesQuery, useCreateTradeMutation } = balanceApi;

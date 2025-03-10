@@ -1,5 +1,7 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { useDispatch } from 'react-redux';
+import dayjs from 'dayjs';
+import 'dayjs/locale/ru';
 
 // material-ui
 import {
@@ -29,6 +31,36 @@ import {
 } from 'store/reducers/api';
 import { setBalanceOpen } from 'store/reducers/action';
 
+dayjs.locale('ru');
+
+const TimeLeft = ({ initialTime = 0.0 }) => {
+  const [timeLeft, setTimeLeft] = useState(initialTime);
+
+  useEffect(() => {
+    setTimeLeft(initialTime);
+  }, [initialTime]);
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setTimeLeft((prevTime) => {
+        if (prevTime <= 1) {
+          clearInterval(interval); // Stop when the time is 0 or less
+          return 0;
+        }
+        return prevTime - 1;
+      });
+    }, 60000); // Update every minute (60000 ms)
+
+    return () => clearInterval(interval); // Clean up on unmount
+  }, []);
+
+  return (
+    <Typography variant="h6" color="primary">
+      Активен еще{' '}
+      {timeLeft >= 60 ? `${Math.floor(timeLeft / 60)} ч ${timeLeft % 60} мин` : `${timeLeft} мин`}
+    </Typography>
+  );
+};
+
 const TariffForm = ({ profile }) => {
   const [open, setOpen] = React.useState(false);
   const { data: cities = [] } = useFetchCitiesQuery();
@@ -40,7 +72,6 @@ const TariffForm = ({ profile }) => {
   const handleClose = () => {
     setOpen(false);
   };
-  console.log(cities, profile.city);
 
   return (
     <>
@@ -53,7 +84,6 @@ const TariffForm = ({ profile }) => {
         })}
         onSubmit={async (values, { setErrors, setStatus, setSubmitting }) => {
           try {
-            console.log('Selected Tariff:', values.tariff);
           } catch (err) {
             console.error(err);
             setStatus({ success: false });
@@ -66,13 +96,6 @@ const TariffForm = ({ profile }) => {
         {({ values, setFieldValue, setErrors, errors, setSubmitting, setStatus, isSubmitting }) => (
           <form noValidate>
             <Grid container spacing={3}>
-              <Grid item xs={12}>
-                <Stack direction="column" spacing={1} alignItems="center">
-                  <Typography variant="h4">
-                    Выбранный тариф будет активен <b>в течение 1 часа</b> после активации.
-                  </Typography>
-                </Stack>
-              </Grid>
               <Grid item xs={12}>
                 {errors.submit && (
                   <FormHelperText error id="helper-text-submit-tariff">
@@ -94,30 +117,18 @@ const TariffForm = ({ profile }) => {
                           boxShadow: isSelected ? theme.customShadows.z1 : 'none',
                           transition: '0.3s',
                           cursor: 'pointer',
-                          backgroundColor: isSelected ? 'primary.lighter' : 'transparent',
+                          backgroundColor: isSelected ? 'rgba(225, 179, 226, 0.47)' : 'transparent',
                         }}
                       >
                         <CardContent>
                           <Stack direction="row" alignItems="space-between" spacing={1}>
                             <Typography variant="h4" gutterBottom>
-                              {tariff.name}
+                              {tariff?.type?.name}
                             </Typography>
-                            {isSelected && (
-                              <Typography variant="h6" color="primary">
-                                Активный
-                              </Typography>
-                            )}
+                            {isSelected && <TimeLeft initialTime={parseInt(profile.tariff_end)} />}
                           </Stack>
                           <Typography variant="h5" color="textSecondary">
                             {tariff.price} ₸ / час
-                          </Typography>
-                          <Typography
-                            variant="body2"
-                            color="textSecondary"
-                            gutterBottom
-                            whiteSpace="pre-line"
-                          >
-                            {tariff.description}
                           </Typography>
                           <Button
                             variant={isSelected ? 'contained' : 'outlined'}

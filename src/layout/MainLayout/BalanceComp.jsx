@@ -20,6 +20,7 @@ import {
   Accordion,
   AccordionSummary,
   AccordionDetails,
+  CircularProgress,
 } from '@mui/material';
 import RefreshIcon from '@mui/icons-material/Refresh';
 import CloseIcon from '@mui/icons-material/Close';
@@ -31,17 +32,13 @@ import {
   useGetTradesQuery,
 } from 'store/reducers/balanceApi';
 import { setBalanceOpen } from 'store/reducers/action';
-import { useAuth } from 'contexts/index';
 
 const BalanceComp = () => {
-  const { isAuthenticated } = useAuth();
+  const { data: balance, refetch, isFetching } = useGetBalanceQuery();
   const dispatch = useDispatch();
   const { balanceOpen } = useSelector((state) => state.action);
   const [inputOne, setInputOne] = useState(0);
 
-  const { data: balanceData = {}, refetch: refetchBalance } = useGetBalanceQuery(null, {
-    skip: !isAuthenticated,
-  });
   const {
     data: tradesData = [],
     error: tradesError,
@@ -54,6 +51,16 @@ const BalanceComp = () => {
   const handleCreateTrade = () => {
     createTrade(inputOne);
   };
+  React.useEffect(() => {
+    const interval = setInterval(async () => {
+      if (!balanceOpen || isFetching) return;
+      await refetch();
+    }, 60000);
+
+    return () => clearInterval(interval);
+
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   return (
     <>
@@ -62,9 +69,9 @@ const BalanceComp = () => {
         sx={{ display: 'flex', alignItems: 'center' }}
         ml={2}
       >
-        баланс: {balanceData?.balance || 0} KZT
+        баланс: {isFetching ? <CircularProgress size={20} /> : `${balance?.balance || 0} KZT`}
       </Button>
-      <IconButton onClick={refetchBalance}>
+      <IconButton onClick={refetch} disabled={isFetching}>
         <RefreshIcon />
       </IconButton>
       <Dialog

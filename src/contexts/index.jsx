@@ -1,3 +1,4 @@
+import Loader from 'components/Loader';
 import PropTypes from 'prop-types';
 import React, { useMemo, useState, useEffect, useContext, useCallback, createContext } from 'react';
 import { useNavigate } from 'react-router-dom';
@@ -22,7 +23,11 @@ const AuthProvider = ({ children }) => {
   } = useGetMeQuery(null, {
     skip: (isAuthenticated !== 'loading' && isAuthenticated) || !localStorage.getItem('authToken'),
   });
-  const { data: profileData, isSuccess } = useMyProfileQuery(null, {
+  const {
+    data: profileData,
+    isSuccess,
+    isFetching: isFetchingProfile,
+  } = useMyProfileQuery(null, {
     skip:
       !isAuthenticated || !localStorage.getItem('authToken') || userData?.user_id !== user?.user_id,
   });
@@ -98,12 +103,24 @@ const AuthProvider = ({ children }) => {
       logout: handleLogout,
       register: handleRegister,
       refreshAuthState,
+      isFetching: isFetchingProfile || isFetching || isLoading,
     }),
-    [isAuthenticated, user, handleLogin, handleLogout, handleRegister, refreshAuthState, profile]
+    [
+      isAuthenticated,
+      user,
+      handleLogin,
+      handleLogout,
+      handleRegister,
+      refreshAuthState,
+      profile,
+      isFetchingProfile,
+      isFetching,
+      isLoading,
+    ]
   );
 
   if (isFetching || isLoading) {
-    return null;
+    return <Loader />;
   }
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

@@ -5,10 +5,18 @@ import { useSelector } from 'react-redux';
 import { Menu, Box, Typography } from '@mui/material';
 import FilterItem from './FilterItem';
 import { useFetchGendersQuery } from 'store/reducers/api';
+import Loader from 'components/Loader';
 
 const Category = ({ anchorEl, open, handleClose }) => {
-  const { data: genders = [] } = useFetchGendersQuery();
+  const { data: genders = [], isFetching, refetch } = useFetchGendersQuery();
   const { gender } = useSelector((state) => state.action);
+  if (isFetching) {
+    return <Loader />;
+  }
+  if (!isFetching && genders.length === 0) {
+    refetch();
+  }
+
   return (
     <Menu
       id="category-menu"

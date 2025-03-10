@@ -12,16 +12,13 @@ import TabContext from '@mui/lab/TabContext';
 import TabList from '@mui/lab/TabList';
 import TabPanel from '@mui/lab/TabPanel';
 
+import RadioButtonCheckedIcon from '@mui/icons-material/RadioButtonChecked';
 import DeleteIcon from '@mui/icons-material/Delete';
 
 // project import
 import AnketaForm from './auth-forms/AnketaForm';
 import { useAuth } from 'contexts/index';
-import {
-  useDeleteProfileMutation,
-  useFetchMediaQuery,
-  useGetProfilePhotosQuery,
-} from 'store/reducers/api';
+import { useDeleteProfileMutation, useHideProfileMutation } from 'store/reducers/api';
 import TariffForm from './auth-forms/TariffForm';
 
 // ================================|| LOGIN ||================================ //
@@ -42,12 +39,11 @@ const MyProfile = () => {
     setOpen(false);
   };
   const navigate = useNavigate();
-  const { profile } = useAuth();
-  const { data: photos = [], isFetching } = useGetProfilePhotosQuery(profile?.id || 0);
-  const { data: media = [], isFetching: mediaIsFetching } = useFetchMediaQuery(profile?.id || 0);
+  const { profile, isFetching } = useAuth();
   const [deleteProfile, { isLoading: isDeleting }] = useDeleteProfileMutation();
+  const [hideProfile, { isLoading: isHiding }] = useHideProfileMutation();
 
-  if (!profile?.id) return navigate('/');
+  if (!profile?.id && !isDeleting && !isHiding && !isFetching) return navigate('/');
 
   return (
     <>
@@ -56,63 +52,109 @@ const MyProfile = () => {
           <Grid container spacing={3}>
             <Grid item xs={12}>
               <Stack
-                direction={{ xs: 'column-reverse', sm: 'row' }}
+                direction={{ xs: 'column', sm: 'row' }}
                 justifyContent="space-between"
                 alignItems="baseline"
-                sx={{ mb: { xs: -0.3 } }}
+                spacing={2}
               >
-                <TabList onChange={handleChange} aria-label="lab API tabs example" sx={{}}>
-                  <Tab label={<Typography variant="h4">Анкета</Typography>} value="profile" />
-                  {profile?.checked && profile?.approved && (
-                    <Tab label={<Typography variant="h4">Тариф</Typography>} value="tariff" />
+                <TabList
+                  onChange={handleChange}
+                  aria-label="lab API tabs example"
+                  sx={{ width: { xs: '100%', sm: 'auto' } }}
+                >
+                  <Tab
+                    sx={{
+                      flex: { xs: 1, sm: 'unset' },
+                      maxWidth: { xs: 'unset', sm: 'initial' },
+                    }}
+                    label={<Typography variant="h4">Анкета</Typography>}
+                    value="profile"
+                  />
+                  {profile?.checked && profile?.approved && profile?.hidden === 0 && (
+                    <Tab
+                      sx={{
+                        flex: 1,
+                      }}
+                      label={<Typography variant="h4">Тариф</Typography>}
+                      value="tariff"
+                    />
                   )}
                 </TabList>
                 {value === 'profile' && (
-                  <Button
-                    color="error"
-                    sx={{ textTransform: 'none', alignSelf: 'flex-end' }}
-                    endIcon={<DeleteIcon />}
-                    onClick={handleClickOpen}
-                    disabled={isDeleting}
+                  <Stack
+                    direction="row"
+                    spacing={1}
+                    width={{ xs: '100%', sm: 'auto' }}
+                    justifyContent={{ xs: 'space-between', sm: 'flex-end' }}
                   >
-                    {!isDeleting ? (
-                      'Удалить анкету'
-                    ) : (
-                      <>
-                        Удаляется <CircularProgress size={15} />
-                      </>
-                    )}
-                  </Button>
+                    <Button
+                      variant={profile?.hidden === 0 ? 'contained' : 'outlined'}
+                      color="primary"
+                      onClick={() =>
+                        hideProfile({
+                          id: profile?.id,
+                          data: { hidden: profile?.hidden === 0 ? 1 : 0 },
+                        })
+                      }
+                      sx={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: 1,
+                        width: 'fit-content',
+                        justifyContent: 'center',
+                        overflow: 'hidden',
+                        textTransform: 'none',
+                        transition: 'transform 0.3s ease-in-out', // Плавный переход
+                        flexDirection: 'row',
+                      }}
+                      disabled={isHiding}
+                    >
+                      <Typography
+                        variant="body1"
+                        sx={{
+                          textTransform: 'none',
+                          transition: 'transform 0.3s ease-in-out', // Плавное изменение позиции
+                          transform: profile?.hidden === 1 ? 'translateX(30px)' : 'translateX(0)', // Плавно сдвигаем текст
+                        }}
+                      >
+                        {profile?.hidden === 1 ? 'Показать' : 'Скрыть анкету'}
+                      </Typography>
+                      <RadioButtonCheckedIcon
+                        sx={{
+                          transition: 'transform 0.3s ease-in-out', // Плавное изменение позиции
+                          transform: profile?.hidden === 1 ? 'translateX(-80px)' : 'translateX(0)', // Плавно сдвигаем иконку
+                        }}
+                      />
+                    </Button>
+
+                    <Button
+                      color="error"
+                      sx={{ textTransform: 'none', alignSelf: 'flex-end' }}
+                      endIcon={<DeleteIcon />}
+                      onClick={handleClickOpen}
+                      disabled={isDeleting}
+                    >
+                      {!isDeleting ? (
+                        'Удалить анкету'
+                      ) : (
+                        <>
+                          Удаляется <CircularProgress size={15} />
+                        </>
+                      )}
+                    </Button>
+                  </Stack>
                 )}
               </Stack>
             </Grid>
             <Grid item xs={12}>
               <TabPanel value="profile" sx={{ p: 0 }}>
-                <AnketaForm
-                  profile={profile}
-                  photos={
-                    photos.length > 0
-                      ? photos.map((photo) => ({
-                          id: photo[0],
-                          upload: process.env.REACT_APP_SERVER_URL + photo[1],
-                        }))
-                      : []
-                  }
-                  isFetching={isFetching || mediaIsFetching}
-                  media={
-                    media.length > 0
-                      ? media.map((photo) => ({
-                          id: photo[0],
-                          upload: process.env.REACT_APP_SERVER_URL + photo[1],
-                          media: 'video',
-                        }))
-                      : []
-                  }
-                />
+                <AnketaForm profile={profile} />
               </TabPanel>
-              <TabPanel value="tariff">
-                <TariffForm profile={profile} />
-              </TabPanel>
+              {profile?.checked && profile?.approved && profile?.hidden === 0 && (
+                <TabPanel value="tariff">
+                  <TariffForm profile={profile} />
+                </TabPanel>
+              )}
             </Grid>
           </Grid>
         </TabContext>

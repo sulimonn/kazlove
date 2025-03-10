@@ -5,11 +5,11 @@ const api = apiSlice.injectEndpoints({
   endpoints: (builder) => ({
     fetchProfiles: builder.query({
       query: () => '/profiles',
-      providesTags: ['Profile'],
+      providesTags: ['Profile', 'User'],
     }),
     myProfile: builder.query({
       query: () => '/profile/me',
-      providesTags: ['Profile'],
+      providesTags: ['Profile', 'User'],
     }),
     postProfile: builder.mutation({
       query: (data) => ({
@@ -17,7 +17,7 @@ const api = apiSlice.injectEndpoints({
         method: 'POST',
         body: data,
       }),
-      invalidatesTags: ['Profile'],
+      invalidatesTags: ['Profile', 'User'],
     }),
     editProfile: builder.mutation({
       query: (data) => ({
@@ -25,7 +25,7 @@ const api = apiSlice.injectEndpoints({
         method: 'PUT',
         body: data,
       }),
-      invalidatesTags: ['Profile'],
+      invalidatesTags: ['Profile', 'User'],
     }),
     deleteProfile: builder.mutation({
       query: (id) => ({
@@ -86,10 +86,6 @@ const api = apiSlice.injectEndpoints({
       }),
       invalidatesTags: ['Profile'],
     }),
-    getProfilePhotos: builder.query({
-      query: (profile_id) => `/profiles/${profile_id}/photos`,
-      providesTags: ['Profile'],
-    }),
     deleteProfilePhoto: builder.mutation({
       query: (data) => ({
         url: `/profiles/${data.profile_id}/photos/${data.id}`,
@@ -122,10 +118,6 @@ const api = apiSlice.injectEndpoints({
     }),
     fetchTariffs: builder.query({
       query: () => '/tariffs/all',
-    }),
-    fetchMedia: builder.query({
-      query: (id) => `/profiles/${id}/media/`,
-      providesTags: ['Profile'],
     }),
     postMedia: builder.mutation({
       query: ({ data, profile_id }) => ({
@@ -175,6 +167,14 @@ const api = apiSlice.injectEndpoints({
       query: () => '/tariff-types/all',
       providesTags: ['Tariffs'],
     }),
+    hideProfile: builder.mutation({
+      query: ({ id, data }) => ({
+        url: `/profiles/${id}/hidden`,
+        method: 'PUT',
+        body: data,
+      }),
+      invalidatesTags: ['Profile'],
+    }),
   }),
 });
 
@@ -208,6 +208,7 @@ export const {
   useUpdateTariffMutation,
   useDeleteTariffMutation,
   useFetchTariffTypesQuery,
+  useHideProfileMutation,
 } = api;
 
 export default api;

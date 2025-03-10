@@ -52,6 +52,8 @@ const actionSlice = createSlice({
     },
     setSwiperFilter: (state, action) => {
       const { id, option } = action.payload;
+      console.log(id, option);
+
       state[id] = option;
       localStorage.setItem(id, option);
     },

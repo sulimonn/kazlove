@@ -18,7 +18,6 @@ import createPreview from 'utils/createPreview';
 const MySwiper = ({ photos = [], setPhotos, media, setMedia, ...props }) => {
   const mediaRef = React.useRef(null);
   const imageRef = React.useRef(null);
-  const [isFullScreen, setIsFullScreen] = React.useState(false);
 
   const handleDeletePhoto = (id) => {
     const updatedPhotos = photos.filter((photo) => photo.id !== id);
@@ -27,6 +26,15 @@ const MySwiper = ({ photos = [], setPhotos, media, setMedia, ...props }) => {
 
     setPhotos(() => [...updatedPhotos, deletedPhoto]);
     props.setFieldValue('photos', updatedPhotos);
+  };
+
+  const handleDeleteMedia = (id) => {
+    const updatedMedia = media.filter((photo) => photo.id !== id);
+    const deletedPhoto = media.find((photo) => photo.id === id);
+    deletedPhoto.upload = null;
+
+    setMedia(() => [...updatedMedia, deletedPhoto]);
+    props.setFieldValue('media', updatedMedia);
   };
 
   const handleFullScreen = (event) => {
@@ -42,7 +50,6 @@ const MySwiper = ({ photos = [], setPhotos, media, setMedia, ...props }) => {
       document.mozFullScreenElement ||
       document.msFullscreenElement
     ) {
-      setIsFullScreen(false);
       // Exit full-screen mode
       if (document.exitFullscreen) {
         document.exitFullscreen();
@@ -57,7 +64,6 @@ const MySwiper = ({ photos = [], setPhotos, media, setMedia, ...props }) => {
         document.msExitFullscreen();
       }
     } else {
-      setIsFullScreen(true);
       // Otherwise, request full-screen mode
       if (element.requestFullscreen) {
         element.requestFullscreen();
@@ -142,6 +148,8 @@ const MySwiper = ({ photos = [], setPhotos, media, setMedia, ...props }) => {
                   onChange={(e) => {
                     let photos2 = [];
                     setPhotos((prev) => {
+                      console.log(prev);
+
                       photos2 = [
                         ...prev,
                         ...Array.from(e.target.files).map((file) => ({
@@ -211,7 +219,7 @@ const MySwiper = ({ photos = [], setPhotos, media, setMedia, ...props }) => {
             </Box>
           </Stack>
         </SwiperSlide>
-        {photos.map((photo, i) => {
+        {photos?.map((photo, i) => {
           if (!photo?.upload) return null;
           return (
             <SwiperSlide
@@ -261,7 +269,7 @@ const MySwiper = ({ photos = [], setPhotos, media, setMedia, ...props }) => {
           );
         })}
 
-        {media.map((video, i) => {
+        {media?.map((video, i) => {
           if (!video?.upload) return null;
           return (
             <SwiperSlide
@@ -269,8 +277,10 @@ const MySwiper = ({ photos = [], setPhotos, media, setMedia, ...props }) => {
               style={{ position: 'relative', display: 'flex', justifyContent: 'center' }}
             >
               <IconButton
-                onClick={() => handleDeletePhoto(media[i].id)}
+                onClick={() => handleDeleteMedia(media[i].id)}
                 sx={{ position: 'absolute', top: '2%', right: '2%' }}
+                variant="contained"
+                color="error"
               >
                 <Delete size="large" />
               </IconButton>
@@ -295,9 +305,10 @@ const MySwiper = ({ photos = [], setPhotos, media, setMedia, ...props }) => {
                   style={{
                     width: 'fit-content',
                     height: '100%',
-                    objectFit: isFullScreen ? 'contain' : 'cover',
+                    objectFit: 'contain',
                   }}
                   onClick={handleFullScreen}
+                  controls
                 />
               </Box>
             </SwiperSlide>

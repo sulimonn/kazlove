@@ -49,12 +49,7 @@ import { useEditUserMutation } from 'store/reducers/users';
 
 // ============================|| FIREBASE - REGISTER ||============================ //
 
-const AnketaForm = ({
-  profile = null,
-  photos: initialPhotos = [],
-  media: initialMedia = [],
-  ...others
-}) => {
+const AnketaForm = ({ profile = null, ...others }) => {
   const navigate = useNavigate();
   const { user } = useAuth();
 
@@ -73,13 +68,28 @@ const AnketaForm = ({
   const { data: genders = [] } = useFetchGendersQuery();
   const { data: servicesTypes = [] } = useFetchTypesQuery();
 
-  const [photos, setPhotos] = React.useState(initialPhotos);
-  const [media, setMedia] = React.useState(initialMedia);
+  const [photos, setPhotos] = React.useState([]);
+  const [media, setMedia] = React.useState([]);
 
   React.useEffect(() => {
-    if (initialPhotos.length > 0) setPhotos(initialPhotos);
-    if (initialMedia.length > 0) setMedia(initialMedia);
-  }, [initialPhotos, initialMedia]);
+    if (profile?.photos?.length > 0) {
+      setPhotos(
+        profile?.photos?.map((photo) => ({
+          id: photo[0],
+          upload: process.env.REACT_APP_SERVER_URL + photo[1],
+        }))
+      );
+    }
+
+    if (profile?.media?.length > 0) {
+      setMedia(
+        profile?.media?.map((photo) => ({
+          id: photo[0],
+          upload: process.env.REACT_APP_SERVER_URL + photo[1],
+        }))
+      );
+    }
+  }, [profile?.photos, profile?.media]);
 
   if (
     isPosting ||
@@ -115,15 +125,13 @@ const AnketaForm = ({
           price_hour: '',
           price_two_hours: '',
           price_night: '',
+          price_hour_at_your_place: '',
+          price_two_hours_at_your_place: '',
+          price_night_at_your_place: '',
           additional_info: '',
           ...profile,
           city: profile?.city?.id || '',
           gender: profile?.gender?.id || '',
-          photos: initialPhotos,
-          media: initialMedia,
-
-          telegram: user?.twitter_link,
-          whatsapp: user?.facebook_link,
           submit: null,
         }}
         validationSchema={Yup.object().shape({
@@ -155,7 +163,13 @@ const AnketaForm = ({
             .required('Размер груди обязателен'),
           nationality: Yup.string().required('Национальность обязателен'),
           address: Yup.string().max(255).required('Адрес обязателен'),
-          price: Yup.string().max(255).required('Цена обязательна'),
+          price: Yup.number().required('Цена обязательна'),
+          price_hour: Yup.number().required('Цена за час обязательна'),
+          price_two_hours: Yup.number().required('Цена за 2 часа обязательна'),
+          price_night: Yup.number().required('Цена за ночь обязательна'),
+          price_hour_at_your_place: Yup.number().required('Цена за час обязательна'),
+          price_two_hours_at_your_place: Yup.number().required('Цена за 2 часа обязательна'),
+          price_night_at_your_place: Yup.number().required('Цена за ночь обязательна'),
           city: Yup.number().required('Город обязателен'),
           additional_info: Yup.string().required('Дополнительная информация обязательна'),
           photos: Yup.array()
@@ -165,189 +179,163 @@ const AnketaForm = ({
         })}
         onSubmit={async (values, { setErrors, setStatus, setSubmitting }) => {
           try {
+            setStatus({ success: true });
+
             if (photos.filter((photo) => photo?.upload).length < 3) {
               setStatus({ success: false });
               setErrors({
                 submit: 'Минимальное количество фото 3',
                 photos: 'Минимальное количество фото 3',
               });
+              return;
             } else if (values.services.length < 1) {
               setStatus({ success: false });
               setErrors({
                 submit: 'Услуги обязательны',
                 services: 'Добавьте хотя бы одну услугу',
               });
-            } else {
-              const profileData = {
-                ...values,
-                city_id: values.city,
-                profile_type_id: values.profile_type,
-                gender_id: values.gender,
-                user_id: user?.user_id,
-              };
-              const services = values.services;
-              delete profileData.services;
-              delete profileData.photos;
-              delete profileData.media;
-              const addServices = async (profile_id) => {
-                const allServices = profile?.services || [];
-                const selectedServices = services || [];
-                console.log(allServices, selectedServices);
+              return;
+            }
 
-                const forUpdate = selectedServices
-                  .filter((item) =>
-                    allServices.find(
-                      (service) => service.id === item.id && service.price !== item.price
-                    )
+            const profileData = {
+              ...values,
+              city_id: values.city,
+              profile_type_id: values.profile_type,
+              gender_id: values.gender,
+              user_id: user?.user_id,
+            };
+
+            const services = values.services;
+            delete profileData.services;
+            delete profileData.photos;
+            delete profileData.media;
+
+            const addServices = async (profile_id) => {
+              const allServices = profile?.services || [];
+              const selectedServices = services || [];
+
+              const forUpdate = selectedServices
+                .filter((item) =>
+                  allServices.find(
+                    (service) => service.id === item.id && service.price !== item.price
                   )
-                  .map((item) => ({
-                    service_id: item.id,
-                    profile_id: profile_id,
-                    price: item.price,
-                  }));
+                )
+                .map((item) => ({
+                  service_id: item.id,
+                  profile_id: profile_id,
+                  price: item.price,
+                }));
 
-                // Assuming services are objects with an `id` property
-                const forAdd = selectedServices
-                  .filter(
-                    (item) =>
-                      !allServices.find((service) => {
-                        return service.id === item.id;
-                      })
-                  )
-                  .map((item) => ({
-                    service_id: item.id,
-                    profile_id: profile_id,
-                    price: item.price,
-                  }));
-                console.log(forAdd);
+              const forAdd = selectedServices
+                .filter((item) => !allServices.some((service) => service.id === item.id))
+                .map((item) => ({
+                  service_id: item.id,
+                  profile_id: profile_id,
+                  price: item.price,
+                }));
 
-                const forDelete = allServices
-                  .filter((service) => !selectedServices.find((item) => item.id === service.id))
-                  .map((service) => ({ service_id: service.id, profile_id: profile_id }));
+              const forDelete = allServices
+                .filter((service) => !selectedServices.some((item) => item.id === service.id))
+                .map((service) => ({ service_id: service.id, profile_id: profile_id }));
 
-                if (forUpdate.length > 0) {
-                  const response = await updateService(forUpdate);
-                  if (response?.error) {
-                    setErrors({ submit: 'Что то пошло не так при обновлении услуг' });
-                  }
-                }
+              if (forUpdate.length > 0) {
+                const response = await updateService(forUpdate);
+                if (response?.error) throw new Error('Ошибка обновления услуг');
+              }
 
-                if (forAdd.length > 0) {
-                  const response = await addService(forAdd);
-                  if (response?.error) {
-                    setErrors({ submit: 'Что то пошло не так при добавлении услуг' });
-                  }
-                }
-                if (forDelete.length > 0) {
-                  const response = await deleteService(forDelete);
-                  if (response?.error) {
-                    setErrors({ submit: 'Что то пошло не так при удалении услуг' });
-                  }
-                }
-              };
+              if (forAdd.length > 0) {
+                const response = await addService(forAdd);
+                if (response?.error) throw new Error('Ошибка добавления услуг');
+              }
 
-              const handlePostPhotos = async (profile_id) => {
-                setPhotos((prev) => prev.map((photo) => photo.upload));
-                const postFormData = new FormData();
+              if (forDelete.length > 0) {
+                const response = await deleteService(forDelete);
+                if (response?.error) throw new Error('Ошибка удаления услуг');
+              }
+            };
 
-                photos.forEach(async (photo) => {
-                  if (photo.upload && typeof photo?.upload === 'object') {
-                    postFormData.append('files', photo.upload);
-                  } else if (!photo?.upload && photo?.id) {
-                    await deletePhoto({ id: photo.id, profile_id: profile_id });
-                  }
-                });
+            const handlePostPhotos = async (profile_id) => {
+              setPhotos((prev) => prev.map((photo) => photo.upload));
+              const postFormData = new FormData();
 
-                if (
-                  photos.filter((photo) => typeof photo?.upload === 'object' && photo?.upload)
-                    .length > 0
-                ) {
-                  const responsePhotos = await postPhotos({
-                    data: postFormData,
-                    profile_id: profile_id,
-                  });
-
-                  if (responsePhotos?.error) {
-                    setErrors({ submit: 'Что то пошло не так при загрузке фото' });
-                  } else {
-                    setSubmitting(false);
-                  }
-                }
-              };
-
-              const handlePostMedia = async (profile_id) => {
-                setMedia((prev) => prev.map((video) => video.upload));
-                const postFormData = new FormData();
-
-                media.forEach(async (video) => {
-                  if (video.upload && typeof video?.upload === 'object') {
-                    postFormData.append('file', video.upload);
-                  } else if (!video?.upload && video?.id) {
-                    await deleteMedia({ id: video.id, profile_id: profile_id });
-                  }
-                });
-
-                if (
-                  media.filter((video) => typeof video?.upload === 'object' && video?.upload)
-                    .length > 0
-                ) {
-                  const responseMedia = await postMedia({
-                    data: postFormData,
-                    profile_id: profile_id,
-                  });
-
-                  if (responseMedia?.error) {
-                    setErrors({ submit: 'Что то пошло не так при загрузке видео' });
-                  } else {
-                    setSubmitting(false);
-                  }
-                }
-              };
-
-              if (!profile) {
-                const response = await postProfile({ ...profileData, user_id: user?.user_id });
-                if (response?.error) {
-                  setErrors({ submit: 'Что то пошло не так' });
-                  setStatus({ success: false });
-                } else {
-                  await addServices(response.data.id);
-                  await handlePostPhotos(response.data.id);
-                  await handlePostMedia(response.data.id);
-                  await editUser({
-                    id: user?.user_id,
-                    email: user?.email,
-                    twitter_link: values?.telegram,
-                    facebook_link: values?.whatsapp,
-                  });
-                }
-              } else {
-                const response = await editProfile(profileData);
-                if (response.error) {
-                  setErrors({ submit: 'Что то пошло не так' });
-                } else {
-                  await addServices(profile.id);
-                  await handlePostPhotos(profile.id);
-                  await handlePostMedia(profile.id);
-                  await editUser({
-                    id: user?.user_id,
-                    email: user?.email,
-                    twitter_link: values?.telegram,
-                    facebook_link: values?.whatsapp,
-                  });
+              for (const photo of photos) {
+                if (photo.upload && typeof photo?.upload === 'object') {
+                  postFormData.append('files', photo.upload);
+                } else if (!photo?.upload && photo?.id) {
+                  await deletePhoto({ id: photo.id, profile_id: profile_id });
                 }
               }
-              setStatus({ success: false });
+
+              if (photos.some((photo) => typeof photo?.upload === 'object' && photo?.upload)) {
+                const responsePhotos = await postPhotos({
+                  data: postFormData,
+                  profile_id: profile_id,
+                });
+
+                if (responsePhotos?.error) throw new Error('Ошибка загрузки фото');
+              }
+            };
+
+            const handlePostMedia = async (profile_id) => {
+              setMedia((prev) => prev.map((video) => video.upload));
+              const postFormData = new FormData();
+
+              for (const video of media) {
+                if (video.upload && typeof video?.upload === 'object') {
+                  postFormData.append('file', video.upload);
+                } else if (!video?.upload && video?.id) {
+                  await deleteMedia({ id: video.id, profile_id: profile_id });
+                }
+              }
+
+              if (media.some((video) => typeof video?.upload === 'object' && video?.upload)) {
+                const responseMedia = await postMedia({
+                  data: postFormData,
+                  profile_id: profile_id,
+                });
+
+                if (responseMedia?.error) throw new Error('Ошибка загрузки видео');
+              }
+            };
+
+            if (!profile) {
+              const response = await postProfile({ ...profileData, user_id: user?.user_id });
+              if (response?.error) throw new Error('Ошибка создания профиля');
+
+              await addServices(response.data.id);
+              await handlePostPhotos(response.data.id);
+              await handlePostMedia(response.data.id);
+              await editUser({
+                id: user?.user_id,
+                email: user?.email,
+                twitter_link: values?.telegram,
+                facebook_link: values?.whatsapp,
+              });
+            } else {
+              const response = await editProfile(profileData);
+              if (response?.error) throw new Error('Ошибка редактирования профиля');
+
+              await addServices(profile.id);
+              await handlePostPhotos(profile.id);
+              await handlePostMedia(profile.id);
+              await editUser({
+                id: user?.user_id,
+                email: user?.email,
+                twitter_link: values?.telegram,
+                facebook_link: values?.whatsapp,
+              });
             }
+
+            // ✅ SUCCESS: Navigate after everything completes
+            setStatus({ success: true });
+
+            navigate('/profile/me');
           } catch (err) {
             console.error(err);
             setStatus({ success: false });
             setErrors({ submit: err.message });
-            setSubmitting(false);
           } finally {
             setSubmitting(false);
-            if (!profile) {
-              navigate('/');
-            }
           }
         }}
       >
@@ -362,8 +350,8 @@ const AnketaForm = ({
           setFieldValue,
         }) => (
           <form noValidate onSubmit={handleSubmit}>
-            <Stack container spacing={6} my={4}>
-              <Stack item xs={12}>
+            <Stack spacing={6} my={4}>
+              <Stack xs={12}>
                 <Stack
                   spacing={3}
                   direction="column"
@@ -405,8 +393,8 @@ const AnketaForm = ({
                   Обо мне*
                 </Typography>
                 <Divider sx={{ mt: 6 }} />
-                <Stack container spacing={3}>
-                  <Stack container spacing={3} direction="row" justifyContent="center">
+                <Stack spacing={3}>
+                  <Stack spacing={3} direction="row" justifyContent="center">
                     <Stack spacing={1} sx={{ width: '70%' }}>
                       <InputLabel htmlFor="name-signup">Имя*</InputLabel>
                       <OutlinedInput
@@ -450,7 +438,7 @@ const AnketaForm = ({
                   </Stack>
                 </Stack>
 
-                <Stack item xs={12}>
+                <Stack xs={12}>
                   <Stack spacing={1}>
                     <InputLabel htmlFor="decription-form">О себе*</InputLabel>
                     <TextField
@@ -537,7 +525,10 @@ const AnketaForm = ({
                     </Stack>
                   </Stack>
                   <Stack direction={{ xs: 'column', md: 'row' }} spacing={3}>
-                    <Stack spacing={1} sx={{ width: { xs: '100%', md: '50%' } }}>
+                    <Stack
+                      spacing={1}
+                      sx={{ width: { xs: '100%', md: '50%' }, position: 'relative' }}
+                    >
                       <InputLabel id="gender-label">Категория*</InputLabel>
                       <Select
                         sx={{
@@ -598,7 +589,10 @@ const AnketaForm = ({
                 <Divider sx={{ mt: 6 }} />
                 <Stack direction="column" spacing={1}>
                   <Stack direction={{ xs: 'column', md: 'row' }} spacing={3}>
-                    <Stack spacing={1} sx={{ width: { xs: '100%', md: '50%' } }}>
+                    <Stack
+                      spacing={1}
+                      sx={{ width: { xs: '100%', md: '50%' }, position: 'relative' }}
+                    >
                       <Stack spacing={1}>
                         <InputLabel htmlFor="city-form">Город*</InputLabel>
                         <Select
@@ -720,7 +714,7 @@ const AnketaForm = ({
                 <Divider sx={{ mt: 6 }} />
 
                 <Stack direction="row" spacing={3} mb={3}>
-                  <Stack spacing={1} sx={{ width: '50%' }}>
+                  <Stack spacing={1} sx={{ width: '100%' }}>
                     <InputLabel htmlFor="price-form">Цена от*</InputLabel>
                     <OutlinedInput
                       id="price-form"
@@ -740,8 +734,10 @@ const AnketaForm = ({
                       </FormHelperText>
                     )}
                   </Stack>
-                  <Stack spacing={1} sx={{ width: '50%' }}>
-                    <InputLabel htmlFor="price_hour-form">Цена за час*</InputLabel>
+                </Stack>
+                <Stack direction={{ xs: 'column', sm: 'row' }} spacing={3} mb={3}>
+                  <Stack spacing={1} width="100%">
+                    <InputLabel htmlFor="price_hour-form">Цена за час у меня*</InputLabel>
                     <OutlinedInput
                       id="price_hour-form"
                       type="number"
@@ -760,10 +756,34 @@ const AnketaForm = ({
                       </FormHelperText>
                     )}
                   </Stack>
+                  <Stack spacing={1} width="100%">
+                    <InputLabel htmlFor="price_hour_at_your_place-form">
+                      Цена за час у клиента*
+                    </InputLabel>
+                    <OutlinedInput
+                      id="price_hour_at_your_place-form"
+                      type="number"
+                      min="0"
+                      value={values.price_hour_at_your_place || ''}
+                      name="price_hour_at_your_place"
+                      onBlur={handleBlur}
+                      onChange={handleChange}
+                      placeholder="3000"
+                      fullWidth
+                      error={Boolean(
+                        touched.price_hour_at_your_place && errors.price_hour_at_your_place
+                      )}
+                    />
+                    {touched.price_hour_at_your_place && errors.price_hour_at_your_place && (
+                      <FormHelperText error id="helper-text-price_hour_at_your_place-form">
+                        {errors.price_hour_at_your_place}
+                      </FormHelperText>
+                    )}
+                  </Stack>
                 </Stack>
-                <Stack direction="row" spacing={3} mb={3}>
-                  <Stack spacing={1} sx={{ width: '50%' }}>
-                    <InputLabel htmlFor="price_two_hours-form">Цена за два часа*</InputLabel>
+                <Stack direction={{ xs: 'column', sm: 'row' }} spacing={3} mb={3}>
+                  <Stack spacing={1} width="100%">
+                    <InputLabel htmlFor="price_two_hours-form">Цена за два часа у меня*</InputLabel>
                     <OutlinedInput
                       id="price_two_hours-form"
                       type="number"
@@ -782,8 +802,36 @@ const AnketaForm = ({
                       </FormHelperText>
                     )}
                   </Stack>
-                  <Stack spacing={1} sx={{ width: '50%' }}>
-                    <InputLabel htmlFor="price_night-form">Цена за ночь*</InputLabel>
+                  <Stack spacing={1} width="100%">
+                    <InputLabel htmlFor="price_two_hours_at_you_place-form">
+                      Цена за два часа у клиента*
+                    </InputLabel>
+                    <OutlinedInput
+                      id="price_two_hours_at_your_place-form"
+                      type="number"
+                      min="0"
+                      value={values.price_two_hours_at_your_place || ''}
+                      name="price_two_hours_at_your_place"
+                      onBlur={handleBlur}
+                      onChange={handleChange}
+                      placeholder="3000"
+                      fullWidth
+                      error={Boolean(
+                        touched.price_two_hours_at_your_place &&
+                          errors.price_two_hours_at_your_place
+                      )}
+                    />
+                    {touched.price_two_hours_at_your_place &&
+                      errors.price_two_hours_at_your_place && (
+                        <FormHelperText error id="helper-text-price_two_hours_at_your_place-form">
+                          {errors.price_two_hours_at_your_place}
+                        </FormHelperText>
+                      )}
+                  </Stack>
+                </Stack>
+                <Stack direction={{ xs: 'column', sm: 'row' }} spacing={3} mb={3}>
+                  <Stack spacing={1} width="100%">
+                    <InputLabel htmlFor="price_night-form">Цена за ночь у меня*</InputLabel>
                     <OutlinedInput
                       id="price_night-form"
                       type="number"
@@ -799,6 +847,30 @@ const AnketaForm = ({
                     {touched.price_night && errors.price_night && (
                       <FormHelperText error id="helper-text-price_night-form">
                         {errors.price_night}
+                      </FormHelperText>
+                    )}
+                  </Stack>
+                  <Stack spacing={1} width="100%">
+                    <InputLabel htmlFor="price_night_at_your_place-form">
+                      Цена за ночь у клиента*
+                    </InputLabel>
+                    <OutlinedInput
+                      id="price_night_at_your_place-form"
+                      type="number"
+                      min="0"
+                      value={values.price_night_at_your_place || ''}
+                      name="price_night_at_your_place"
+                      onBlur={handleBlur}
+                      onChange={handleChange}
+                      placeholder="3000"
+                      fullWidth
+                      error={Boolean(
+                        touched.price_night_at_your_place && errors.price_night_at_your_place
+                      )}
+                    />
+                    {touched.price_night_at_your_place && errors.price_night_at_your_place && (
+                      <FormHelperText error id="helper-text-price_night_at_your_place-form">
+                        {errors.price_night_at_your_place}
                       </FormHelperText>
                     )}
                   </Stack>
@@ -911,14 +983,40 @@ const AnketaForm = ({
                 </Stack>
               </Stack>
 
-              <Stack item xs={12} sx={{ mt: 3 }}>
+              <Stack xs={12} sx={{ mt: 3 }}>
                 {errors.submit && (
-                  <Stack item xs={12}>
+                  <Stack xs={12}>
                     <FormHelperText error>{errors.submit}</FormHelperText>
                   </Stack>
                 )}
                 <Button
-                  disabled={isSubmitting || isPosting || isEditing}
+                  disabled={
+                    isSubmitting ||
+                    isPosting ||
+                    isEditing ||
+                    [
+                      'name',
+                      'phone',
+                      'gender',
+                      'age',
+                      'height',
+                      'weight',
+                      'breast_size',
+                      'nationality',
+                      'address',
+                      'price',
+                      'price_hour',
+                      'price_two_hours',
+                      'price_night',
+                      'price_hour_at_your_place',
+                      'price_two_hours_at_your_place',
+                      'price_night_at_your_place',
+                      'city',
+                      'additional_info',
+                    ].some((field) => values[field] === '') ||
+                    !values.services?.length > 0 ||
+                    values.photos?.length < 3
+                  }
                   fullWidth
                   size="large"
                   type="submit"

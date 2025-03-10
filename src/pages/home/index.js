@@ -8,18 +8,15 @@ import { useSelector } from 'react-redux';
 import LocationOnIcon from '@mui/icons-material/LocationOn';
 
 // third-party
-import { FilterOutlined } from '@ant-design/icons';
+import TuneIcon from '@mui/icons-material/Tune';
 import { Sort } from '@mui/icons-material';
+import CategoryIcon from '@mui/icons-material/Category';
 
 // project import
 import Card from './Card';
 import SortMenu from './SortMenu';
 import FilterMenu from './FilterMenu';
-import {
-  useFetchCitiesQuery,
-  useFetchProfilesQuery,
-  useFetchTariffTypesQuery,
-} from 'store/reducers/api';
+import { useFetchCitiesQuery, useFetchProfilesQuery } from 'store/reducers/api';
 import { openModal } from 'store/reducers/menu';
 import Loader from 'components/Loader';
 import { shufflePerPromotionLevel } from 'utils/createPreview';
@@ -30,9 +27,8 @@ import Category from './Category';
 const Home = () => {
   const theme = useTheme();
   const matches = useMediaQuery(theme.breakpoints.down('sm'));
-  const { data = [] } = useFetchProfilesQuery();
-  const { data: cities = [] } = useFetchCitiesQuery();
-  const { data: tariffTypes = [] } = useFetchTariffTypesQuery();
+  const { data = [], isFetching } = useFetchProfilesQuery();
+  const { data: cities = [], isFetching: isFetchingCities } = useFetchCitiesQuery();
 
   const [sortAnchorEl, setSortAnchorEl] = React.useState(null);
   const [filterAnchorEl, setfilterAnchorEl] = React.useState(null);
@@ -69,17 +65,13 @@ const Home = () => {
   }, [dispatch, city]);
 
   useEffect(() => {
-    if (data.length > 0 && tariffTypes.length > 0) {
+    if (data.length > 0) {
       // Filter girls with promotion_level S based on conditions
       const filteredGirls = data
-        .filter((girl) => girl.approved === 1 && girl.checked === 1)
+        .filter((girl) => girl.approved === 1 && girl.checked === 1 && girl.hidden === 0)
         .map((girl) => ({
           ...girl,
-          tariff: {
-            ...girl.tariff,
-            type: tariffTypes.find((t) => t.id === girl.tariff.type),
-          },
-          promotion_level: tariffTypes.find((t) => t.id === girl.tariff.type)?.promotion_level,
+          promotion_level: girl?.tariff?.type?.promotion_level || 0,
         }));
       const promotionTop = shufflePerPromotionLevel(
         filteredGirls.filter((girl) => {
@@ -123,7 +115,6 @@ const Home = () => {
 
       if (age.length > 0) {
         promotionStn = promotionStn.filter((girl) => girl.age >= age[0] && girl.age <= age[1]);
-        console.log(promotionStn);
       }
 
       if (price.length > 0) {
@@ -141,7 +132,7 @@ const Home = () => {
       // Shuffle filtered S
       promotionStn = !sortOption?.id
         ? shufflePerPromotionLevel(promotionStn)
-        : sortOption?.option === 'asc'
+        : sortOption?.option === 'desc'
           ? [...promotionStn].sort((a, b) => (a[sortOption.id] > b[sortOption.id] ? -1 : 1))
           : [...promotionStn].sort((a, b) => (a[sortOption.id] > b[sortOption.id] ? 1 : -1));
 
@@ -154,7 +145,7 @@ const Home = () => {
                 girl.city?.id === city
             )
           )
-        : sortOption?.option === 'asc'
+        : sortOption?.option === 'desc'
           ? [
               ...filteredGirls.filter(
                 (girl) =>
@@ -188,7 +179,7 @@ const Home = () => {
 
       remainingGirls = !sortOption?.id
         ? shufflePerPromotionLevel(remainingGirls)
-        : sortOption?.option === 'asc'
+        : sortOption?.option === 'desc'
           ? [...remainingGirls].sort((a, b) => {
               if (a[sortOption.id] > b[sortOption.id]) {
                 return -1;
@@ -220,6 +211,8 @@ const Home = () => {
       // Update state
       setGirls(finalGirls);
       setLoading(false);
+    } else if (!isFetching && !isFetchingCities) {
+      setLoading(false);
     }
   }, [
     data,
@@ -232,10 +225,11 @@ const Home = () => {
     breast_size,
     services,
     sortOption,
-    tariffTypes,
+    isFetching,
+    isFetchingCities,
   ]);
 
-  if (loading) {
+  if (isFetching || isFetchingCities || loading) {
     return <Loader />;
   }
 
@@ -251,7 +245,7 @@ const Home = () => {
         >
           <Button
             color="secondary"
-            startIcon={<FilterOutlined />}
+            startIcon={<CategoryIcon />}
             sx={{ px: 2, py: 1 }}
             id="category-button"
             aria-controls={categOpen ? 'category-menu' : undefined}
@@ -259,7 +253,7 @@ const Home = () => {
             aria-expanded={categOpen ? 'true' : undefined}
             onClick={(event) => setCategAnchEl(event.currentTarget)}
           >
-            <Typography variant="body1">Категории</Typography>
+            <Typography variant="body1">Пол</Typography>
           </Button>
           <Button
             color="primary"
@@ -277,7 +271,7 @@ const Home = () => {
             {!matches && (
               <Button
                 color="secondary"
-                startIcon={<FilterOutlined />}
+                startIcon={<CategoryIcon />}
                 sx={{ px: 2, py: 1, display: { xs: 'none', sm: 'flex' } }}
                 id="category-button"
                 aria-controls={categOpen ? 'category-menu' : undefined}
@@ -285,12 +279,12 @@ const Home = () => {
                 aria-expanded={categOpen ? 'true' : undefined}
                 onClick={(event) => setCategAnchEl(event.currentTarget)}
               >
-                <Typography variant="body1">Категории</Typography>
+                <Typography variant="body1">Пол</Typography>
               </Button>
             )}
             <Button
               color="secondary"
-              startIcon={<FilterOutlined />}
+              startIcon={<TuneIcon />}
               sx={{ px: 2, py: 1 }}
               id="filter-button"
               aria-controls={filterOpen ? 'filter-menu' : undefined}
@@ -318,11 +312,18 @@ const Home = () => {
             onClick={handleClick}
           >
             <Typography variant="body1">
-              Сортировать {sortOption?.selected ? ': ' + sortOption.selected : ''}
+              Сортировать{' '}
+              <Typography
+                variant="body1"
+                component="span"
+                sx={{ display: { xs: 'none', sm: 'inline' } }}
+              >
+                {sortOption?.selected ? ': ' + sortOption.selected : ''}
+              </Typography>
             </Typography>
           </Button>
         </Stack>
-        <Grid container spacing={3} sx={{ mt: 2 }}>
+        <Grid container spacing={1} sx={{ mt: 2 }}>
           {girls.map((girl) => (
             <Grid item xs={12} sm={6} md={4} lg={3} key={girl.id}>
               <Card girl={girl} />
