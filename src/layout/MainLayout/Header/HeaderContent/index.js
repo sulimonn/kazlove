@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { useSelector, useDispatch } from 'react-redux';
 
 // material-ui
@@ -25,6 +25,7 @@ import { openDrawer, openModal } from 'store/reducers/menu';
 import { useAuth } from 'contexts/index';
 import { useFetchCitiesQuery } from 'store/reducers/api';
 import BalanceComp from 'layout/MainLayout/BalanceComp';
+import { transliterate } from 'utils/createPreview';
 
 // ==============================|| HEADER - CONTENT ||============================== //
 const style = {
@@ -41,6 +42,7 @@ const style = {
 };
 
 const HeaderContent = () => {
+  const navigate = useNavigate();
   const { isAuth, logout, profile } = useAuth();
   const { data: cities = [] } = useFetchCitiesQuery();
   const { city } = useSelector((state) => state.action);
@@ -83,7 +85,7 @@ const HeaderContent = () => {
                 >
                   {selected !== -2
                     ? [...cities, { id: -1, name: 'Все города' }]?.find(
-                        (item) => item.id === selected
+                        (item) => transliterate(item.name) === selected
                       )?.name
                     : 'Выбрать город'}
                 </Button>
@@ -177,13 +179,19 @@ const HeaderContent = () => {
             <MenuItem value={-1}>Все города</MenuItem>
 
             {cities?.map((item) => (
-              <MenuItem key={item.id} value={item.id}>
+              <MenuItem key={item.id} value={transliterate(item.name)}>
                 {item.name}
               </MenuItem>
             ))}
           </Select>
           <Button
             onClick={() => {
+              let pathname = window.location.pathname;
+              pathname = pathname.split('/');
+              pathname[1] = selected;
+              pathname = pathname.join('/');
+              navigate(pathname);
+
               dispatch(setCity(selected));
               handleClose();
             }}

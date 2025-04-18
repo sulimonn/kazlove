@@ -6,6 +6,7 @@ import MainLayout from 'layout/MainLayout';
 
 // render - home
 const Home = Loadable(lazy(() => import('pages/home')));
+const Profiles = Loadable(lazy(() => import('pages/profiles')));
 const Profile = Loadable(lazy(() => import('pages/profile')));
 const ProfileForm = Loadable(lazy(() => import('pages/authentication/Profile')));
 const MyProfile = Loadable(lazy(() => import('pages/authentication/MyProfile')));
@@ -21,6 +22,10 @@ const MainRoutes = {
       element: <Home />,
     },
     {
+      path: '/:citySlug',
+      element: <Profiles />,
+    },
+    {
       path: 'profile/add',
       element: <ProfileForm />,
     },
@@ -29,7 +34,7 @@ const MainRoutes = {
       element: <MyProfile />,
     },
     {
-      path: '/profile/:id',
+      path: '/:citySlug/:id',
       element: <Profile />,
     },
   ],

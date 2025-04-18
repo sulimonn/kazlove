@@ -35,4 +35,60 @@ export const shufflePerPromotionLevel = (girls) => {
   return Object.values(grouped).flat();
 };
 
-// Filter and shuffle per promotion level
+const cyrillicToLatinMap = {
+  а: 'a',
+  б: 'b',
+  в: 'v',
+  г: 'g',
+  д: 'd',
+  е: 'e',
+  ё: 'yo',
+  ж: 'zh',
+  з: 'z',
+  и: 'i',
+  й: 'y',
+  к: 'k',
+  л: 'l',
+  м: 'm',
+  н: 'n',
+  о: 'o',
+  п: 'p',
+  р: 'r',
+  с: 's',
+  т: 't',
+  у: 'u',
+  ф: 'f',
+  х: 'h',
+  ц: 'ts',
+  ч: 'ch',
+  ш: 'sh',
+  щ: 'shch',
+  ъ: '',
+  ы: 'y',
+  ь: '',
+  э: 'e',
+  ю: 'yu',
+  я: 'ya',
+  қ: 'q',
+  ғ: 'gh',
+  ң: 'ng',
+  ү: 'u',
+  ұ: 'u',
+  һ: 'h',
+  ә: 'a',
+  ө: 'o',
+};
+
+export function transliterate(text) {
+  if (typeof text !== 'string') {
+    return text;
+  }
+
+  return text
+    .toLowerCase()
+    .split('')
+    .map((char) => cyrillicToLatinMap[char] || char)
+    .join('')
+    .replace(/[^a-z0-9]+/g, '-') // заменить пробелы и символы на "-"
+    .replace(/^-+|-+$/g, ''); // убрать крайние дефисы
+}

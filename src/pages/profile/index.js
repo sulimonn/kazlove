@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams, Link } from 'react-router-dom';
 import {
   Container,
   Box,
@@ -22,6 +22,7 @@ import WhatsAppIcon from '@mui/icons-material/WhatsApp';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useTheme } from '@mui/material/styles';
 import useMediaQuery from '@mui/material/useMediaQuery';
+import ArrowBackwardIosIcon from '@ant-design/icons/ArrowLeftOutlined';
 
 import {
   useGetProfileQuery,
@@ -37,7 +38,7 @@ const MAX_VISIBLE = 14;
 const Profile = () => {
   const theme = useTheme();
   const matchDownSM = useMediaQuery(theme.breakpoints.down('sm'));
-  const { id } = useParams();
+  const { id, citySlug } = useParams();
   const { user } = useAuth();
   const [photos, setPhotos] = useState([]);
   const [media, setMedia] = useState([]);
@@ -103,6 +104,15 @@ const Profile = () => {
 
   return (
     <Container maxWidth="xl">
+      <Button
+        component={Link}
+        to={'/' + citySlug}
+        variant="outlined"
+        startIcon={<ArrowBackwardIosIcon />}
+        sx={{ mb: 2, textTransform: 'none' }}
+      >
+        К списку анкет
+      </Button>
       <Stack direction={{ xs: 'column', md: 'row' }} spacing={2}>
         <Box
           width={{
@@ -129,11 +139,12 @@ const Profile = () => {
               spacing={2}
               alignItems="left"
             >
-              <Typography variant="h2" fontWeight="bold" color="text.primary">
-                {girl.name}, {girl.age}
+              <Typography variant="h2" component="h1" fontWeight="bold" color="text.primary">
+                {girl.gender?.name} {girl.name} в городе {girl.city?.name}, от {girl.price} тенге в
+                час
               </Typography>
               <Typography variant="h4" fontWeight="normal" color="text.primary">
-                {girl.city?.name}, {girl.address}
+                Адрес: {girl.address}
               </Typography>
               <Stack justifyContent="left">
                 {showContact ? (
@@ -227,6 +238,9 @@ const Profile = () => {
               >
                 <Stack direction={{ xs: 'column-reverse', sm: 'column' }} spacing={3}>
                   <Stack direction="column" justifyContent="space-between">
+                    <Typography variant="h4" component="h2" mb={1}>
+                      Параметры тела
+                    </Typography>
                     <Typography
                       variant="h5"
                       color="text.primary"
@@ -252,125 +266,131 @@ const Profile = () => {
                       🍒 {girl.breast_size} размер груди
                     </Typography>
                   </Stack>
-                  <Box
-                    display="grid"
-                    sx={{ gridTemplateColumns: { xs: '1fr 1fr', sm: '1fr 1fr' }, gap: 1 }}
-                  >
-                    <Box height="100%" bgcolor="primary.dark" py={1} px={2} borderRadius={2}>
-                      <Stack
-                        direction="row"
-                        justifyContent="space-between"
-                        alignItems="flex-start"
-                        spacing={1}
-                      >
-                        <Typography variant="h5" color="text.primary" whiteSpace="pre-line">
-                          Цена от
+                  <Stack>
+                    <Typography variant="h4" component="h2" mb={1}>
+                      Цена услуг
+                    </Typography>
+                    <Box
+                      display="grid"
+                      sx={{ gridTemplateColumns: { xs: '1fr 1fr', sm: '1fr 1fr' }, gap: 1 }}
+                    >
+                      <Box height="100%" bgcolor="primary.dark" py={1} px={2} borderRadius={2}>
+                        <Stack
+                          direction="row"
+                          justifyContent="space-between"
+                          alignItems="flex-start"
+                          spacing={1}
+                        >
+                          <Typography variant="h5" color="text.primary" whiteSpace="pre-line">
+                            Цена от
+                          </Typography>
+                          <Typography variant="h2">💫</Typography>
+                        </Stack>
+                        <Typography variant="body2" color="text.primary" whiteSpace="pre-line">
+                          {new Intl.NumberFormat('ru-RU').format(girl.price)} ₸
                         </Typography>
-                        <Typography variant="h2">💫</Typography>
-                      </Stack>
-                      <Typography variant="body2" color="text.primary" whiteSpace="pre-line">
-                        {new Intl.NumberFormat('ru-RU').format(girl.price)} ₸
-                      </Typography>
+                      </Box>
+                      <Box height="100%" bgcolor="primary.dark" py={1} px={2} borderRadius={2}>
+                        <Stack
+                          direction="row"
+                          justifyContent="space-between"
+                          alignItems="flex-start"
+                          spacing={1}
+                        >
+                          <Typography variant="h5" color="text.primary" whiteSpace="pre-line">
+                            1 час
+                          </Typography>
+                          <Typography variant="h2">🌞</Typography>
+                        </Stack>
+                        <Stack direction="row-reverse" spacing={1} justifyContent="space-between">
+                          <Typography variant="body2" color="text.primary" whiteSpace="pre-line">
+                            у меня
+                          </Typography>
+                          <Typography variant="body2" color="text.primary" whiteSpace="pre-line">
+                            {new Intl.NumberFormat('ru-RU').format(girl.price_hour)} ₸
+                          </Typography>
+                        </Stack>
+                        <Stack direction="row-reverse" spacing={1} justifyContent="space-between">
+                          <Typography variant="body2" color="text.primary" whiteSpace="pre-line">
+                            у тебя
+                          </Typography>
+                          <Typography variant="body2" color="text.primary" whiteSpace="pre-line">
+                            {new Intl.NumberFormat('ru-RU').format(girl.price_hour_at_your_place)} ₸
+                          </Typography>
+                        </Stack>
+                      </Box>
+                      <Box height="100%" bgcolor="primary.dark" py={1} px={2} borderRadius={2}>
+                        <Stack
+                          direction="row"
+                          justifyContent="space-between"
+                          alignItems="flex-start"
+                          spacing={1}
+                        >
+                          <Typography variant="h5" color="text.primary" whiteSpace="pre-line">
+                            2 часа
+                          </Typography>
+                          <Typography variant="h2">🌞</Typography>
+                        </Stack>
+                        <Stack direction="row-reverse" spacing={1} justifyContent="space-between">
+                          <Typography variant="body2" color="text.primary" whiteSpace="pre-line">
+                            у меня
+                          </Typography>
+                          <Typography variant="body2" color="text.primary" whiteSpace="pre-line">
+                            {new Intl.NumberFormat('ru-RU').format(girl.price_two_hours)} ₸
+                          </Typography>
+                        </Stack>
+                        <Stack direction="row-reverse" spacing={1} justifyContent="space-between">
+                          <Typography variant="body2" color="text.primary" whiteSpace="pre-line">
+                            у тебя
+                          </Typography>
+                          <Typography variant="body2" color="text.primary" whiteSpace="pre-line">
+                            {new Intl.NumberFormat('ru-RU').format(
+                              girl.price_two_hours_at_your_place
+                            )}{' '}
+                            ₸
+                          </Typography>
+                        </Stack>
+                      </Box>
+                      <Box height="100%" bgcolor="secondary.dark" py={1} px={2} borderRadius={2}>
+                        <Stack
+                          direction="row"
+                          justifyContent="space-between"
+                          alignItems="flex-start"
+                          spacing={1}
+                        >
+                          <Typography variant="h5" color="text.primary" whiteSpace="pre-line">
+                            Ночь
+                          </Typography>
+                          <Typography variant="h2">🌚</Typography>
+                        </Stack>
+                        <Stack direction="row-reverse" spacing={1} justifyContent="space-between">
+                          <Typography variant="body2" color="text.primary" whiteSpace="pre-line">
+                            у меня
+                          </Typography>
+                          <Typography variant="body2" color="text.primary" whiteSpace="pre-line">
+                            {new Intl.NumberFormat('ru-RU').format(girl.price_night)} ₸
+                          </Typography>
+                        </Stack>
+                        <Stack direction="row-reverse" spacing={1} justifyContent="space-between">
+                          <Typography variant="body2" color="text.primary" whiteSpace="pre-line">
+                            у тебя
+                          </Typography>
+                          <Typography variant="body2" color="text.primary" whiteSpace="pre-line">
+                            {new Intl.NumberFormat('ru-RU').format(girl.price_night_at_your_place)}{' '}
+                            ₸
+                          </Typography>
+                        </Stack>
+                      </Box>
                     </Box>
-                    <Box height="100%" bgcolor="primary.dark" py={1} px={2} borderRadius={2}>
-                      <Stack
-                        direction="row"
-                        justifyContent="space-between"
-                        alignItems="flex-start"
-                        spacing={1}
-                      >
-                        <Typography variant="h5" color="text.primary" whiteSpace="pre-line">
-                          1 час
-                        </Typography>
-                        <Typography variant="h2">🌞</Typography>
-                      </Stack>
-                      <Stack direction="row-reverse" spacing={1} justifyContent="space-between">
-                        <Typography variant="body2" color="text.primary" whiteSpace="pre-line">
-                          у меня
-                        </Typography>
-                        <Typography variant="body2" color="text.primary" whiteSpace="pre-line">
-                          {new Intl.NumberFormat('ru-RU').format(girl.price_hour)} ₸
-                        </Typography>
-                      </Stack>
-                      <Stack direction="row-reverse" spacing={1} justifyContent="space-between">
-                        <Typography variant="body2" color="text.primary" whiteSpace="pre-line">
-                          у тебя
-                        </Typography>
-                        <Typography variant="body2" color="text.primary" whiteSpace="pre-line">
-                          {new Intl.NumberFormat('ru-RU').format(girl.price_hour_at_your_place)} ₸
-                        </Typography>
-                      </Stack>
-                    </Box>
-                    <Box height="100%" bgcolor="primary.dark" py={1} px={2} borderRadius={2}>
-                      <Stack
-                        direction="row"
-                        justifyContent="space-between"
-                        alignItems="flex-start"
-                        spacing={1}
-                      >
-                        <Typography variant="h5" color="text.primary" whiteSpace="pre-line">
-                          2 часа
-                        </Typography>
-                        <Typography variant="h2">🌞</Typography>
-                      </Stack>
-                      <Stack direction="row-reverse" spacing={1} justifyContent="space-between">
-                        <Typography variant="body2" color="text.primary" whiteSpace="pre-line">
-                          у меня
-                        </Typography>
-                        <Typography variant="body2" color="text.primary" whiteSpace="pre-line">
-                          {new Intl.NumberFormat('ru-RU').format(girl.price_two_hours)} ₸
-                        </Typography>
-                      </Stack>
-                      <Stack direction="row-reverse" spacing={1} justifyContent="space-between">
-                        <Typography variant="body2" color="text.primary" whiteSpace="pre-line">
-                          у тебя
-                        </Typography>
-                        <Typography variant="body2" color="text.primary" whiteSpace="pre-line">
-                          {new Intl.NumberFormat('ru-RU').format(
-                            girl.price_two_hours_at_your_place
-                          )}{' '}
-                          ₸
-                        </Typography>
-                      </Stack>
-                    </Box>
-                    <Box height="100%" bgcolor="secondary.dark" py={1} px={2} borderRadius={2}>
-                      <Stack
-                        direction="row"
-                        justifyContent="space-between"
-                        alignItems="flex-start"
-                        spacing={1}
-                      >
-                        <Typography variant="h5" color="text.primary" whiteSpace="pre-line">
-                          Ночь
-                        </Typography>
-                        <Typography variant="h2">🌚</Typography>
-                      </Stack>
-                      <Stack direction="row-reverse" spacing={1} justifyContent="space-between">
-                        <Typography variant="body2" color="text.primary" whiteSpace="pre-line">
-                          у меня
-                        </Typography>
-                        <Typography variant="body2" color="text.primary" whiteSpace="pre-line">
-                          {new Intl.NumberFormat('ru-RU').format(girl.price_night)} ₸
-                        </Typography>
-                      </Stack>
-                      <Stack direction="row-reverse" spacing={1} justifyContent="space-between">
-                        <Typography variant="body2" color="text.primary" whiteSpace="pre-line">
-                          у тебя
-                        </Typography>
-                        <Typography variant="body2" color="text.primary" whiteSpace="pre-line">
-                          {new Intl.NumberFormat('ru-RU').format(girl.price_night_at_your_place)} ₸
-                        </Typography>
-                      </Stack>
-                    </Box>
-                  </Box>
+                  </Stack>
                 </Stack>
               </Box>
             </Stack>
           </Stack>
           {girl?.services?.length > 0 && (
             <Stack direction="column" justifyContent="left" spacing={2} my={4}>
-              <Typography variant="h4" fontWeight="bold">
-                Предпочтения
+              <Typography variant="h4" component="h2" fontWeight="bold">
+                Услуги для клиентов
               </Typography>
 
               {/* List Container with Fade Effect */}
@@ -461,8 +481,8 @@ const Profile = () => {
       </Stack>
       {/* Comment Section */}
       <Box mt={6}>
-        <Typography variant="h3" gutterBottom>
-          Отзывы
+        <Typography variant="h3" component="h2" gutterBottom>
+          Отзывы клиентов
         </Typography>
         <List>
           {comments.map((comment) => (

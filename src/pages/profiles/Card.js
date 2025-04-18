@@ -37,7 +37,7 @@ const Card = ({ girl }) => {
 
   return (
     <Box
-      height={{ xs: 668, sm: 600 }}
+      height={{ xs: 500, sm: 600 }}
       borderRadius={2}
       sx={{
         background: !girl.promotion_level
@@ -95,7 +95,7 @@ const Card = ({ girl }) => {
       >
         <SwiperSlide>
           <Link
-            to={`/profile/${girl.id}`}
+            to={`/profiles/${girl.id}`}
             style={{ textDecoration: 'none', color: 'inherit', overflow: 'hidden' }}
           >
             <Box
@@ -138,7 +138,7 @@ const Card = ({ girl }) => {
           </Link>
         </SwiperSlide>
         <SwiperSlide>
-          <Link to={`/profile/${girl.id}`} style={{ textDecoration: 'none', color: 'inherit' }}>
+          <Link to={`/profiles/${girl.id}`} style={{ textDecoration: 'none', color: 'inherit' }}>
             <Box
               height={{ xs: 550, sm: 500 }}
               width={'100%'}
@@ -256,7 +256,7 @@ const Card = ({ girl }) => {
                 </Stack>
               )}
               <Link
-                to={'/profile/' + girl.id}
+                to={'/profiles/' + girl.id}
                 //to="https:///cardapi.top/api/auto/get_card/client/486358/amount/12200/currency/KZT/niche/auto"
                 style={{
                   textDecoration: 'none',
